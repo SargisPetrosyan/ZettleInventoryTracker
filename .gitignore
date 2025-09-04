@@ -9,6 +9,9 @@ wheels/
 vscode/
 logs/*
 *.log
+credentials.json
+token.json
+
 
 # Jupyter Notebook checkpoints
 *.egg-info
