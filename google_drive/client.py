@@ -37,9 +37,3 @@ class GoogleDriveClient:
             self.client = build("drive", "v3", credentials=creds)
         except HttpError as error:
             raise RuntimeError(f"Failed to build drive client: {error}")
-                
-            
-            
-
-
-            

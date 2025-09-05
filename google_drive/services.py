@@ -6,7 +6,7 @@ from client import GoogleDriveClient
 load_dotenv()
 
 class GoogleDriveServices:
-    def __init__(self):
+    def __init__(self) -> None:
         self.drive = GoogleDriveClient()
         self.INVENTORY_FOLDER_ID = os.getenv("INVENTORY_TRACKING_FOLDER_ID")
         self.INVENTORY_SAMPLE_FILE_ID = os.getenv("INVENTORY_SAMPLE_FILE_ID")
