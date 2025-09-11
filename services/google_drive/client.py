@@ -1,9 +1,6 @@
-import os
-from dotenv import load_dotenv
-from datetime import date
 from googleapiclient.errors import HttpError
 from googleapiclient.discovery import build
-from sevices.google_drive.auth import get_drive_credentials
+from auth import get_drive_credentials
 from typing import Any, Optional
 
 
@@ -19,9 +16,9 @@ class GoogleDriveServices:
     def get_drive_file_list(self,folder_id: str, page_size: int ) -> dict[str, dict[str, Any] | Any]:
         """List files matching a query."""
         results = self.client.files().list(
-            q=f"'{folder_id}' in parents",
+            q=f"'{folder_id}' in parents and trashed = false",
             pageSize=page_size,
-            fields="nextPageToken, files(id, name)"
+            fields="nextPageToken, files(id, name)",
         ).execute()
         
         return results.get("files", [])
@@ -45,7 +42,24 @@ class GoogleDriveServices:
         return self.client.files().get(
             fileId=file_id,
             ).execute()
+
         
-    
+class GoogleSheetServices:
+    def __init__(self) -> None:
+        creds = get_drive_credentials()
+        try:
+            self.client = build("sheets", "v4", credentials=creds).spreadsheets()
+        except HttpError as error:
+            raise RuntimeError(f"Failed to build sheet client: {error}")
+        
+        
+    def get_sheet_data(self,) -> list:
+        products = self.client.values().get(
+            spreadsheetId='1Xh5ZAwsr_SaF2GHQHmJZwhdZnQM-adSFiMrAAB7yc3s',
+            range=f"Sheet1!A1:F200"
+        ).execute()
+
+        return products.get('values', [])
+
         
     

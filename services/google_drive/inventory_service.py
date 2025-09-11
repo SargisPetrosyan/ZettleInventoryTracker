@@ -6,8 +6,8 @@ from googleapiclient.errors import HttpError
 load_dotenv()
 
 class DriveInventoryServices:
-    def __init__(self, drive_service: GoogleDriveServices, ) -> None:
-        self.drive = drive_service
+    def __init__(self ) -> None:
+        self.drive = GoogleDriveServices()
         self.MAIN_FOLDER_ID: str | None= os.getenv("ROOT_FOLDER_ID")
         self.TEMPLATE_SAMPLE_ID: str | None = os.getenv("TEMPLATE_SAMPLE_ID")
         
@@ -22,7 +22,11 @@ class DriveInventoryServices:
             file = self.drive.get_drive_file(file_id=file_name)
             return file
         except HttpError as error:
-            print(f"An error occurred: {error}")
+            print(f"An error occurred: file does't exist {error}")
+            
+
+            
+        
             
         
         
