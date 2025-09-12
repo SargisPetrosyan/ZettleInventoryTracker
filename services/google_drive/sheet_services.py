@@ -8,7 +8,7 @@ class DriveSheetServices:
         self.product_name:str = product_name
         self.row_sheet_data:DataFrame = pd.DataFrame(self.sheet.get_sheet_data())
         self.sheet_data:DataFrame = self._format_row_data_to_panda()
-        self.product_data:DataFrame = self._check_product_exist(product_name)
+        self.product_data = self._check_product_exist(product_name)
 
         
     def _format_row_data_to_panda(self) -> DataFrame:
@@ -16,6 +16,8 @@ class DriveSheetServices:
         df.columns = df.iloc[0]  
         df = df[1:]               
         df = df.reset_index(drop=True)
+        cols = ["opening_stock", "stock_in", "stock_out", "closing_stock"]
+        df[cols] = df[cols].apply(pd.to_numeric, errors="coerce" )
         
         return df
 
@@ -29,3 +31,12 @@ class DriveSheetServices:
     def create_new_object(self) ->DataFrame:
         return 'new product was created'
     
+    def update_stock_in(self,quantity:int):
+        self.product_data.loc[self.product_data["product_name"] == "product_5", "stock_in"] += quantity
+        
+        
+test = DriveSheetServices('product_5')
+
+test.update_stock_in(500)
+
+print(test.product_data)
