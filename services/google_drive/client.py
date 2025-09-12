@@ -2,6 +2,7 @@ from googleapiclient.errors import HttpError
 from googleapiclient.discovery import build
 from auth import get_drive_credentials
 from typing import Any, Optional
+import gspread
 
 
 
@@ -48,18 +49,31 @@ class GoogleSheetServices:
     def __init__(self) -> None:
         creds = get_drive_credentials()
         try:
-            self.client = build("sheets", "v4", credentials=creds).spreadsheets()
+            self.client = gspread.oauth()
         except HttpError as error:
             raise RuntimeError(f"Failed to build sheet client: {error}")
         
         
-    def get_sheet_data(self,) -> list:
+    def get_sheet_data(self) -> list:
         products = self.client.values().get(
             spreadsheetId='1Xh5ZAwsr_SaF2GHQHmJZwhdZnQM-adSFiMrAAB7yc3s',
             range=f"Sheet1!A1:F200"
+            
         ).execute()
 
         return products.get('values', [])
+    
+    def update_sheet_row(self):
+        self.client.values().update(
+            spreadsheetId='1Xh5ZAwsr_SaF2GHQHmJZwhdZnQM-adSFiMrAAB7yc3s',
+            range=f"Sheet!A6:F6"
+            # body =[]
+        )
+        
+test = GoogleSheetServices()
 
+result = test.get_sheet_data()
+
+print(result)
         
     
