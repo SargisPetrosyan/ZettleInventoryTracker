@@ -3,7 +3,7 @@ import pandas as pd
 from pandas import DataFrame
 
 class DriveSheetServices:
-    def __init__(self,product_name: str) -> None:
+    def __init__(self,product_name: str, ) -> None:
         self.sheet = GoogleSheetServices()
         self.product_name:str = product_name
         self.row_sheet_data:DataFrame = pd.DataFrame(self.sheet.get_sheet_data())
@@ -28,15 +28,29 @@ class DriveSheetServices:
             return self.create_new_object()
         return product_exist
     
-    def create_new_object(self) ->DataFrame:
-        return 'new product was created'
+    def create_new_object_row(
+        self,product_name: str,
+        product_id: int,
+        opening_stock:int,
+        stock_in: int,
+        stock_out: int,
+        closing_stock: int) -> None:
+        
+        new_row:DataFrame = pd.DataFrame({
+            'product_name':[f"{product_name}"],
+            'product_id' : [product_id],
+            'opening_stock': [opening_stock],
+            'stock_in': [stock_in],
+            "stock_out": [stock_out],
+            "closing_stock": [closing_stock]})
+        
+        
+        self.sheet_data = pd.concat([self.sheet_data, new_row], ignore_index=True)
+        self.product_data = new_row
     
-    def update_stock_in(self,quantity:int):
-        self.product_data.loc[self.product_data["product_name"] == "product_5", "stock_in"] += quantity
-        
-        
-test = DriveSheetServices('product_5')
+    def update_stock_in(self,quantity:int)->None:
+        self.product_data.loc[self.product_data["product_name"] == self.product_name, "stock_in"] += quantity
 
-test.update_stock_in(500)
-
-print(test.product_data)
+    def update_stock_out(self,quantity:int)->None:
+        self.product_data.loc[self.product_data["product_name"] == self.product_name, "stock_out"] += quantity
+    
