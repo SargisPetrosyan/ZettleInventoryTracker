@@ -7,35 +7,11 @@ import gspread
 
 
 def get_drive_credentials():
-    creds = None
-    # If modifying these scopes, delete the file token.json.
-    SCOPES = ["https://www.googleapis.com/auth/drive"]
-
-
-    # if os.path.exists("token.json"):
-    #     creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-
-    # if not creds or not creds.valid:
-    #     if creds and creds.expired and creds.refresh_token:
-    #         creds.refresh(Request())
-    #     else:
-    #         flow = InstalledAppFlow.from_client_secrets_file(
-    #             "credentials.json", SCOPES
-    #         )
-    #         creds = flow.run_local_server(port=0)
-    #         # Save the credentials for the next run
-    #         with open("token.json", "w") as token:
-    #             token.write(creds.to_json())
-    # return creds
-
-
-def get_drive_credentials():
-    creds = None
-    # If modifying these scopes, delete the file token.json.
-    SCOPES = ["https://www.googleapis.com/auth/drive"]
-    gspread.oauth(gspread.auth.DEFAULT_SCOPES,
-                  credentials_filename='json',
-                  authorized_user_filename=)
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    CREDENTIALS_PATH = os.path.join(BASE_DIR, "../../creds/credentials.json")
+    TOKEN_PATH = os.path.join(BASE_DIR, "../../creds/token.json")
+    SCOPES = ['https://www.googleapis.com/auth/drive']
+    
 
     if os.path.exists("token.json"):
         creds = Credentials.from_authorized_user_file("token.json", SCOPES)
@@ -52,3 +28,7 @@ def get_drive_credentials():
             with open("token.json", "w") as token:
                 token.write(creds.to_json())
     return creds
+
+
+
+print(os.path.exists(TOKEN_PATH))
