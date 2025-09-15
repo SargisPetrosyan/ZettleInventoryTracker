@@ -1,13 +1,13 @@
 import os
 from dotenv import load_dotenv
-from client import GoogleDriveServices
+from client import GoogleDriveClient
 from googleapiclient.errors import HttpError
 
 load_dotenv()
 
-class DriveInventoryServices:
+class DriveInventoryManege:
     def __init__(self ) -> None:
-        self.drive = GoogleDriveServices()
+        self.drive = GoogleDriveClient()
         self.MAIN_FOLDER_ID: str | None= os.getenv("ROOT_FOLDER_ID")
         self.TEMPLATE_SAMPLE_ID: str | None = os.getenv("TEMPLATE_SAMPLE_ID")
         
