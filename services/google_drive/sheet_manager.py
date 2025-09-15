@@ -17,17 +17,26 @@ class SpreadsheetManager:
         except HttpError as error:
             raise RuntimeError(f"Failed to build sheet client: {error}")
         self.spreadsheet = self.client.open_by_key(spreadsheet_id).worksheet(worksheet_name)
+        self.name_col:int = 1
+        self.category_col:int = 2
+        self.opening_stock_col:int = 3
+        self.stock_in_col:int = 4
+        self.stock_out_col:int = 5
+        self.closing_stock_col:int = 6
     
     def get_product(self, product_name:str) -> Cell | None:
         return self.spreadsheet.find(product_name)
     
+    def get_cell_value(self,row:int,col:int)-> str|None:
+        return self.spreadsheet.cell(row=row,col=col).value
     
     def get_all_values(self):
         return self.spreadsheet.get_all_values()
     
-    def update_numeric_call(self,row,amount:int):
-        
-        self.spreadsheet.update()
+    def update_numeric_call(self,row:int, col:int, amount:int,):
+        value = self.get_cell_value(row=row,col=col)
+        formula:str = f"={value}+{amount}"
+        self.spreadsheet.update_cell(row, col, formula)
         
     
     def append_element(
@@ -54,7 +63,8 @@ class SpreadsheetManager:
         closing_stock:int,
         )-> None:
         
-        if not self.get_product(product_name=product_name):
+        product_data:Cell|None = self.get_product(product_name=product_name)
+        if product_data is None:
             self.append_element(
                 product_name=product_name,
                 category=category,
@@ -62,5 +72,20 @@ class SpreadsheetManager:
                 stock_in=stock_in,
                 stock_out=stock_out,
                 closing_stock=closing_stock)
+        else:    
+            self.product_data = product_data
+            row:int = self.product_data.row
+            self.update_numeric_call(row=row,col=self.stock_in_col, amount=stock_in)
             
+test = SpreadsheetManager(spreadsheet_id=SPREADSHEET_ID,worksheet_name="Sheet1")
 
+test.stock_in(
+    product_name = "product_5",
+    category = "Electronics",
+    opening_stock = 120,
+    stock_in = 30,
+    stock_out = 0,
+    closing_stock=300,
+)    
+
+            
