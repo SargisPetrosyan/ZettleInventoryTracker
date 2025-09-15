@@ -63,20 +63,4 @@ class SpreadsheetManager:
                 stock_out=stock_out,
                 closing_stock=closing_stock)
             
-        self.update_numeric_call()
-            
 
-
-test = SpreadsheetManager(spreadsheet_id=SPREADSHEET_ID,worksheet_name="Sheet1")
-
-result = test.stock_in(
-    product_name = "product_5",
-    category = "Electronics",
-    opening_stock = 120,
-    stock_in = 30,
-    stock_out = 25,
-    closing_stock=300,
-)    
-
-print(result) 
-            
