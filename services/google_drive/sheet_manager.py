@@ -21,8 +21,14 @@ class SpreadsheetManager:
     def get_product(self, product_name:str) -> Cell | None:
         return self.spreadsheet.find(product_name)
     
+    
     def get_all_values(self):
         return self.spreadsheet.get_all_values()
+    
+    def update_numeric_call(self,row,amount:int):
+        
+        self.spreadsheet.update()
+        
     
     def append_element(
         self,
@@ -37,3 +43,40 @@ class SpreadsheetManager:
         
         new_row = [[product_name, category, opening_stock, stock_in, stock_out, closing_stock]]
         self.spreadsheet.update(range_name = f"A{last_element}:F{last_element}", values=new_row)
+        
+        
+    def stock_in(self, 
+        product_name:str,
+        category:str,
+        opening_stock:int,
+        stock_in: int,
+        stock_out:int,
+        closing_stock:int,
+        )-> None:
+        
+        if not self.get_product(product_name=product_name):
+            self.append_element(
+                product_name=product_name,
+                category=category,
+                opening_stock=opening_stock,
+                stock_in=stock_in,
+                stock_out=stock_out,
+                closing_stock=closing_stock)
+            
+        self.update_numeric_call()
+            
+
+
+test = SpreadsheetManager(spreadsheet_id=SPREADSHEET_ID,worksheet_name="Sheet1")
+
+result = test.stock_in(
+    product_name = "product_5",
+    category = "Electronics",
+    opening_stock = 120,
+    stock_in = 30,
+    stock_out = 25,
+    closing_stock=300,
+)    
+
+print(result) 
+            
