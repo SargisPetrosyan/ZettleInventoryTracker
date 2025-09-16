@@ -2,7 +2,14 @@ from googleapiclient.errors import HttpError
 from googleapiclient.discovery import build
 from auth import get_drive_credentials
 from typing import Any, Optional
+import os 
+from dotenv import load_dotenv
 
+
+load_dotenv()
+  
+SPREADSHEET_ID = os.getenv("DAY_TEMPLATE_SAMPLE_ID")
+ROOT_FOLDER_ID = os.getenv("ROOT_FOLDER_ID")
 
 
 
@@ -43,10 +50,6 @@ class GoogleDriveClient():
         return self.client.files().get(
             fileId=file_id,
             ).execute()
-
-
-    
-    
         
         
     

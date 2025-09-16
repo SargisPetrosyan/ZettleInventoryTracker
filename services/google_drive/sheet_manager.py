@@ -1,15 +1,39 @@
 import gspread
 from googleapiclient.errors import HttpError
-from gspread import Cell,utils
+from gspread import utils
 from auth import get_drive_credentials
 import os 
-from pandas import DataFrame,Series
+from pandas import DataFrame
 from dotenv import load_dotenv
-from typing import Any
 
 load_dotenv()
   
 SPREADSHEET_ID = os.getenv("DAY_TEMPLATE_SAMPLE_ID")
+ROOT_FOLDER_ID = os.getenv("ROOT_FOLDER_ID")
+new_copy_id= "1DSDjRNNTNxZGB4D-ID6cAy8gI-2F6r2GBYmBDtAgpm0"
+
+
+class SheetFileManager:
+    def __init__(self) -> None:
+        credentials = get_drive_credentials()
+        try:
+            self.client = gspread.authorize(credentials)
+        except HttpError as error:
+            raise RuntimeError(f"Failed to build sheet client: {error}")
+        
+    def copy_spreadsheet(self,spreadsheet_id:str, title:str, folder_id:str):
+        return self.client.copy(file_id=spreadsheet_id, title=title, folder_id=folder_id)
+    
+    def rename_worksheet(self,spreadsheet_id:str,title:str, rename:str):
+        return self.client.open_by_key(spreadsheet_id).worksheet(title).update_title(rename)
+           
+    def copy_sheet_to_spreadsheet(self,spreadsheet_id:str, sheet_id: int, destination_spreadsheet_id:str):
+        self.client.http_client.spreadsheets_sheets_copy_to(
+            id=spreadsheet_id,
+            sheet_id=sheet_id, 
+            destination_spreadsheet_id=destination_spreadsheet_id,
+            )      
+          
 
 class SheetManager:
     def __init__(self, spreadsheet_id, worksheet_name:str) -> None:
@@ -49,7 +73,6 @@ class SheetManager:
     def update_stock_out(self, value:int,row:int)-> None:
         self.spreadsheet.update_cell(row=row + 2, col=self.stock_out_col, value=value)
         
-
 
 class ProductDataFrame:
     def __init__(self, sheet:SheetManager,) -> None:
