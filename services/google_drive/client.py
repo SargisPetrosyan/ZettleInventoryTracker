@@ -51,6 +51,15 @@ class GoogleDriveClient():
             fileId=file_id,
             ).execute()
         
+    def create_folder(self, folder_name:str, parent_folder_id:str) -> None:
+        folder_metadata = {
+            'name': folder_name,
+            'mimeType': 'application/vnd.google-apps.folder',
+            'parents': [parent_folder_id]  # parent folder ID
+        }
+        
+        self.client.files().create(body=folder_metadata, fields='id').execute()
+        
         
     
 

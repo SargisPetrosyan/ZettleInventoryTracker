@@ -32,8 +32,7 @@ class SheetFileManager:
             id=spreadsheet_id,
             sheet_id=sheet_id, 
             destination_spreadsheet_id=destination_spreadsheet_id,
-            )      
-          
+            )
 
 class SheetManager:
     def __init__(self, spreadsheet_id, worksheet_name:str) -> None:
