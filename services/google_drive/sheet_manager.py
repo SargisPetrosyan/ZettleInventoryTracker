@@ -58,9 +58,9 @@ class ProductDataFrame:
             columns=sheet.raw_data[0],
             index="name"
         )
-           
-    def get_product_data(self, product_name:str) -> DataFrame | Series:
-        return self.sheet_data.loc[f"{product_name}"]
+            
+    def get_product_data(self, product_name:str):
+        return self.sheet_data.get([f"{product_name}"])
  
     def get_product_row_index(self,product_name:str):
         return self.sheet_data.index.get_loc(product_name)
@@ -86,4 +86,5 @@ class ProductDataFrame:
     def last_row_index(self) -> int:
         row:int = self.sheet_data.shape[0] + 1
         return row
+
 
