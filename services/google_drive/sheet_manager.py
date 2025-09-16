@@ -1,15 +1,17 @@
 import gspread
 from googleapiclient.errors import HttpError
-from gspread import Cell
+from gspread import Cell,utils
 from auth import get_drive_credentials
 import os 
+from pandas import DataFrame,Series
 from dotenv import load_dotenv
+from typing import Any
 
 load_dotenv()
   
 SPREADSHEET_ID = os.getenv("DAY_TEMPLATE_SAMPLE_ID")
 
-class SpreadsheetManager:
+class SheetManager:
     def __init__(self, spreadsheet_id, worksheet_name:str) -> None:
         credentials = get_drive_credentials()
         try:
@@ -17,29 +19,15 @@ class SpreadsheetManager:
         except HttpError as error:
             raise RuntimeError(f"Failed to build sheet client: {error}")
         self.spreadsheet = self.client.open_by_key(spreadsheet_id).worksheet(worksheet_name)
+        self.raw_data = self.spreadsheet.get(return_type=utils.GridRangeType.ListOfLists)
         self.name_col:int = 1
         self.category_col:int = 2
         self.opening_stock_col:int = 3
         self.stock_in_col:int = 4
         self.stock_out_col:int = 5
         self.closing_stock_col:int = 6
-    
-    def get_product(self, product_name:str) -> Cell | None:
-        return self.spreadsheet.find(product_name)
-    
-    def get_cell_value(self,row:int,col:int)-> str|None:
-        return self.spreadsheet.cell(row=row,col=col).value
-    
-    def get_all_values(self):
-        return self.spreadsheet.get_all_values()
-    
-    def update_numeric_call(self,row:int, col:int, amount:int,):
-        value = self.get_cell_value(row=row,col=col)
-        formula:str = f"={value}+{amount}"
-        self.spreadsheet.update_cell(row, col, formula)
         
-    
-    def append_element(
+    def add_product(
         self,
         product_name:str,
         category:str,
@@ -47,45 +35,55 @@ class SpreadsheetManager:
         stock_in: int,
         stock_out:int,
         closing_stock:int, 
+        last_row:int,
         ) -> None:
-        last_element = len(self.get_all_values()) + 1
         
+        last_element = last_row + 1
         new_row = [[product_name, category, opening_stock, stock_in, stock_out, closing_stock]]
         self.spreadsheet.update(range_name = f"A{last_element}:F{last_element}", values=new_row)
         
         
-    def stock_in(self, 
-        product_name:str,
-        category:str,
-        opening_stock:int,
-        stock_in: int,
-        stock_out:int,
-        closing_stock:int,
-        )-> None:
+    def update_stock_in(self, value:int,row:int)-> None:
+        self.spreadsheet.update_cell(row=row + 2, col=self.stock_in_col, value=value)
         
-        product_data:Cell|None = self.get_product(product_name=product_name)
-        if product_data is None:
-            self.append_element(
-                product_name=product_name,
-                category=category,
-                opening_stock=opening_stock,
-                stock_in=stock_in,
-                stock_out=stock_out,
-                closing_stock=closing_stock)
-        else:    
-            self.product_data = product_data
-            row:int = self.product_data.row
-            self.update_numeric_call(row=row,col=self.stock_in_col, amount=stock_in)
-            
-test = SpreadsheetManager(spreadsheet_id=SPREADSHEET_ID,worksheet_name="Sheet1")
+    def update_stock_out(self, value:int,row:int)-> None:
+        self.spreadsheet.update_cell(row=row + 2, col=self.stock_out_col, value=value)
+        
 
-test.stock_in(
-    product_name = "product_5",
-    category = "Electronics",
-    opening_stock = 120,
-    stock_in = 30,
-    stock_out = 0,
-    closing_stock=300,
-)    
 
-            
+class ProductDataFrame:
+    def __init__(self, sheet:SheetManager,) -> None:
+        self.sheet_data = DataFrame.from_records(
+            sheet.raw_data[1:],
+            columns=sheet.raw_data[0],
+            index="name"
+        )
+           
+    def get_product_data(self, product_name:str) -> DataFrame | Series:
+        return self.sheet_data.loc[f"{product_name}"]
+ 
+    def get_product_row_index(self,product_name:str):
+        return self.sheet_data.index.get_loc(product_name)
+    
+    def increment_stock_in(self, product_name:str, amount:int) -> dict:
+        row_index = self.get_product_row_index(product_name)
+        old_value:int = int(self.sheet_data.at[product_name, "stock_in"])
+        updated:dict = {
+            'row':row_index, 
+            "value":old_value + amount
+            }
+        return updated
+    
+    def increment_stock_out(self, product_name:str, amount:int) -> dict:
+        row_index = self.get_product_row_index(product_name)
+        old_value:int = int(self.sheet_data.at[product_name, "stock_out"])
+        updated:dict = {
+            'row':row_index, 
+            "value":old_value + amount
+            }
+        return updated
+    
+    def last_row_index(self) -> int:
+        row:int = self.sheet_data.shape[0] + 1
+        return row
+
