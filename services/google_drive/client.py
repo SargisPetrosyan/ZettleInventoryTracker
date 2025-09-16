@@ -28,7 +28,7 @@ class GoogleDriveClient():
             pageSize=page_size,
             fields="nextPageToken, files(id, name)",
         ).execute()
-        
+    
         return results.get("files", [])
     
     def duplicate_drive_file(self, file_id: Optional[str], file_name:str | None, parent_folder_id: str
