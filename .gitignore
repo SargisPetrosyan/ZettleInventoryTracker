@@ -11,7 +11,8 @@ logs/*
 *.log
 credentials.json
 token.json
-payload_example.json
+InventoryBalanceChanged.json
+Product.json
 
 
 # Jupyter Notebook checkpoints
