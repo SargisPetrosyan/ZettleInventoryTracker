@@ -1,5 +1,5 @@
 from gspread import utils
-from client import SpreadSheetClient
+from client import SpreadSheetClient  # type:ignore
 
 from typing import Any, Iterable
 

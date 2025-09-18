@@ -7,7 +7,7 @@ def validate_inventory_update(payload: dict) -> BaseModel:
         validation: BaseModel = InventoryBalanceChanged(**payload)
         return validation
     except ValidationError as e:
-        raise ValidationError("Inventory update data validation failed", e)
+        raise ValueError("Inventory data validation failed", e)
 
 
 def validating_product_data(payload: dict):
@@ -15,7 +15,7 @@ def validating_product_data(payload: dict):
         validation: BaseModel = ProductData(**payload)
         return validation
     except ValidationError as e:
-        raise ValidationError("Product data validation failed", e)
+        raise ValueError("Product data validation failed", e)
 
 
 class InventoryUpdatedBy(BaseModel):
@@ -25,19 +25,13 @@ class InventoryUpdatedBy(BaseModel):
     updatedAt: str
 
 
-class InventoryBalanceChanged(BaseModel):
-    organizationUuid: str
-    updatedBy: InventoryUpdatedBy
-    timestamp: datetime
-
-
 class Product(BaseModel):
     productUuid: str
     variantUuid: str
     locationUuid: str
 
 
-class inventory(BaseModel):
+class Inventory(BaseModel):
     before: int
     after: int
     change: int
@@ -49,6 +43,14 @@ class Variants(BaseModel):
     name: None | str
     description: str
     sku: str
+
+
+class InventoryBalanceChanged(BaseModel):
+    organizationUuid: str
+    updatedBy: InventoryUpdatedBy
+    timestamp: datetime
+    product: Product
+    inventory: Inventory
 
 
 class ProductData(BaseModel):

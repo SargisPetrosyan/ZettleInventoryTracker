@@ -1,9 +1,15 @@
 from services.google_drive.client import GoogleDriveClient, SpreadSheetClient
-import os
-from validaton import validate_inventory_update, validating_product_data
+from services.zettle.validaton import validate_inventory_update, validating_product_data  # type:ignore
 from dotenv import load_dotenv
-
+from pydantic import BaseModel
+import pdb
 import json
+
+
+with open("data/InventoryBalanceChanged.json", "r") as fp:
+    INVENTORY_UPDATE = json.load(fp)
+with open("data/Product.json", "r") as fp:
+    PRODUCT_UPDATE = json.load(fp)
 
 load_dotenv()
 
@@ -13,8 +19,14 @@ class ZettleWebhookHandler:
         self.drive_client = GoogleDriveClient()
         self.sheet_client = SpreadSheetClient()
 
-    def process_webhook(self, inventory_update, product_data):
-        payload = json.load(inventory_update)
-        product_data = json.load(product_data)
-        inventory_update_validated = validate_inventory_update(payload=payload)
-        product_data_validated = validating_product_data(product_data)
+    def process_webhook(self):
+        inventory_update:BaseModel = validate_inventory_update(payload=INVENTORY_UPDATE)
+        product_update:BaseModel = validate_inventory_update(payload=PRODUCT_UPDATE)
+        
+        
+
+if __name__ == "__main__":
+    test = ZettleWebhookHandler()
+
+    test.process_webhook()
+
