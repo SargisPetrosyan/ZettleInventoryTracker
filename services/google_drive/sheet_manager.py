@@ -66,3 +66,5 @@ class SheetManager:
 
     def update_stock_out(self, value: int | float | str, row: int) -> None:
         self.spreadsheet.update_cell(row=row + 2, col=self.stock_out_col, value=value)
+        
+    

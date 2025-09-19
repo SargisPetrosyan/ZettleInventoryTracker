@@ -58,21 +58,23 @@ class GoogleDriveClient:
             .execute()
         )
 
-    def create_folder(self, folder_name: str, parent_folder_id: str) -> None:
+    def create_folder(self, folder_name: str, parent_folder_id: str):
         folder_metadata = {
             "name": folder_name,
             "mimeType": "application/vnd.google-apps.folder",
             "parents": [parent_folder_id],  # parent folder ID
         }
 
-        self.client.files().create(body=folder_metadata, fields="id").execute()
+        return self.client.files().create(body=folder_metadata, fields="id").execute()
       
-    def file_exist(self, file_name: str, folder_name:str, folder: bool) -> None | str:
+    def file_exist(self, file_name: str, folder_id:str, folder: bool) -> None | str:
         file_mime_type = 'application/vnd.google-apps.folder' if folder \
         else 'application/vnd.google-apps.spreadsheet'
         
         result = self.client.files().list(
-            query = f"name = '{file_name}' and mimeType = '{file_mime_type}' and '{folder_name}' in parents")
+            q = f"name = '{file_name}' and mimeType = '{file_mime_type}' and '{folder_id}' in parents and trashed = false",
+            fields="files(id, name)"
+        ).execute()
         
         files: list = result.get('files', [])
          
@@ -111,8 +113,3 @@ class SpreadSheetClient:
             sheet_id=sheet_id,
             destination_spreadsheet_id=destination_spreadsheet_id,
         )
-
-
-test = GoogleDriveClient()
-
-print(test.get_drive_file_list(folder_id=root ,page_size=100))

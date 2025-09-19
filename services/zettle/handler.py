@@ -1,8 +1,10 @@
-from services.google_drive.client import GoogleDriveClient, SpreadSheetClient
+from services.google_drive.client import SpreadSheetClient,GoogleDriveClient
+from services.google_drive.drive_manager import DriveFileManager
+from services.google_drive.sheet_manager import SheetFileManager, SheetManager
 from services.zettle.validaton import InventoryBalanceChanged, ProductData  # type:ignore
 from dotenv import load_dotenv
 from pydantic import BaseModel
-from services.google_drive.utils import create_name
+from services.google_drive.utils import FileName
 import json
 
 import os 
@@ -24,33 +26,39 @@ load_dotenv()
 
 class ZettleWebhookHandler:
     def __init__(self) -> None:
-        self.drive_client = GoogleDriveClient()
-        self.sheet_client = SpreadSheetClient()
+        self.drive_client:GoogleDriveClient = GoogleDriveClient()
+        self.sheet_client:SpreadSheetClient = SpreadSheetClient()
+
+        
 
     def process_webhook(self):
         inventory_update:BaseModel = InventoryBalanceChanged(**INVENTORY_UPDATE)
         product_update:BaseModel = ProductData(**PRODUCT_UPDATE)
         
-        name:dict = create_name(inventory_update.timestamp)
         
-        #check_year folder
-        if not self.drive_client.file_exist(file_name=name.get('year'), folder_name=ROOT_FOLDER, folder=True):
-            self.drive_client.create_folder(name=name.get('year'))
+        drive_file_manege:DriveFileManager = DriveFileManager(self.drive_client)
+        
+        name = FileName(date=inventory_update.timestamp)
+        
+        
+        if not self.drive_client.file_exist(file_name=name.year, folder_id=ROOT_FOLDER, folder=True):
+            drive_file = drive_file_manege.create_year_folder(
+                year=name.year, 
+                parent_folder_id=ROOT_FOLDER,
+                sample_file_id=DAY_SAMPLE,
+                nested_file_name=name.name)
+            drive_file_id = drive_file.get("id")
+        sheet_file_manege = SheetFileManager(client=self.sheet_client), 
+        sheet_manager = SheetManager(client=self.sheet_client, spreadsheet_id=drive_file_id, worksheet_name=name.month)
 
+        
+        
+        
+        
 
-        else:
-            #select year folder 
-            
         
-            
-        
-                
-        
-    
-        print(inventory_update.timestamp)
-        
-if __name__ == "__main__":
-    test = ZettleWebhookHandler()
 
-    test.process_webhook()
+test = ZettleWebhookHandler()
+
+test.process_webhook()
 

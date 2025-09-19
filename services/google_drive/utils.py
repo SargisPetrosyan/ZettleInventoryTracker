@@ -1,18 +1,9 @@
 from datetime import datetime
-from services.zettle.validaton import InventoryBalanceChanged
 
-def create_name(date: datetime ) -> dict:
-    year:int = date.date().year
-    month:int = date.date().month
-    month_name: str = date.strftime("%B")
-    day:int = date.date().day
-    file_name: str = f"{year}-{month}-{month_name}"
-    
-    date_data:dict = {
-        "file_name": file_name, 
-        "day": str(day),
-        "year": str(year),
-        "month": str(month)
-        }
-    
-    return date_data
+class FileName:
+    def __init__(self,date:datetime) -> None:
+        self.year:str = str(date.year)
+        self.month:str = str(date.month).zfill(2)
+        self.day:str = str(date.day).zfill(2)
+        self.month_name:str = str(date.strftime("%B"))
+        self.name: str = f"{self.year}-{self.month}-{self.month_name}"
