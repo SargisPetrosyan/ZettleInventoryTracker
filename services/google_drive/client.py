@@ -66,26 +66,33 @@ class GoogleDriveClient:
         }
 
         return self.client.files().create(body=folder_metadata, fields="id").execute()
-      
-    def file_exist(self, file_name: str, folder_id:str, folder: bool) -> None | str:
-        file_mime_type = 'application/vnd.google-apps.folder' if folder \
-        else 'application/vnd.google-apps.spreadsheet'
-        
-        result = self.client.files().list(
-            q = f"name = '{file_name}' and mimeType = '{file_mime_type}' and '{folder_id}' in parents and trashed = false",
-            fields="files(id, name)"
-        ).execute()
-        
-        files: list = result.get('files', [])
-         
+
+    def file_exist(self, file_name: str, folder_id: str, folder: bool) -> None | str:
+        file_mime_type = (
+            "application/vnd.google-apps.folder"
+            if folder
+            else "application/vnd.google-apps.spreadsheet"
+        )
+
+        result = (
+            self.client.files()
+            .list(
+                q=f"name = '{file_name}' and mimeType = '{file_mime_type}' and '{folder_id}' in parents and trashed = false",
+                fields="files(id, name)",
+            )
+            .execute()
+        )
+
+        files: list = result.get("files", [])
+
         if files:
             if len(files) > 1:
-                print('folder/file has duplicate')
-            print('file/folder already exist')
+                print("folder/file has duplicate")
+            print("file/folder already exist")
             return files[0]
-        
+
         return None
-            
+
 
 class SpreadSheetClient:
     def __init__(self) -> None:

@@ -13,6 +13,7 @@ credentials.json
 token.json
 InventoryBalanceChanged.json
 Product.json
+test.py
 
 
 # Jupyter Notebook checkpoints

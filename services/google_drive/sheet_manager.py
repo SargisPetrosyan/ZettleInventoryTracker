@@ -1,6 +1,7 @@
 from gspread import utils
 from client import SpreadSheetClient  # type:ignore
 
+
 from typing import Any, Iterable
 
 
@@ -33,9 +34,7 @@ class SheetManager:
         self.client = client
 
         self.spreadsheet = self.client.open_by_key(spreadsheet_id, title=worksheet_name)
-        self.raw_data = self.spreadsheet.get(
-            return_type=utils.GridRangeType.ListOfLists
-        )
+
         self.name_col: int = 1
         self.category_col: int = 2
         self.opening_stock_col: int = 3
@@ -66,5 +65,6 @@ class SheetManager:
 
     def update_stock_out(self, value: int | float | str, row: int) -> None:
         self.spreadsheet.update_cell(row=row + 2, col=self.stock_out_col, value=value)
-        
-    
+
+    def get_row_data(self):
+        return self.spreadsheet.get(return_type=utils.GridRangeType.ListOfLists)

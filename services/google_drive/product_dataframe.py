@@ -1,14 +1,10 @@
-from services.google_drive.sheet_manager import SheetManager
 from pandas import DataFrame
 
 
 class ProductDataFrame:
-    def __init__(
-        self,
-        sheet: SheetManager,
-    ) -> None:
+    def __init__(self, sheet) -> None:
         self.sheet_data = DataFrame.from_records(
-            sheet.raw_data[1:], columns=sheet.raw_data[0], index="name"
+            sheet[1:], columns=sheet[0], index="name"
         )
 
     def get_product_data(self, product_name: str):

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ValidationError
 from datetime import datetime
 
+
 class InventoryUpdatedBy(BaseModel):
     userUuid: str
     userType: str
