@@ -1,23 +1,6 @@
 from pydantic import BaseModel, ValidationError
 from datetime import datetime
 
-
-def validate_inventory_update(payload: dict) -> BaseModel:
-    try:
-        validation: BaseModel = InventoryBalanceChanged(**payload)
-        return validation
-    except ValidationError as e:
-        raise ValueError("Inventory data validation failed", e)
-
-
-def validating_product_data(payload: dict):
-    try:
-        validation: BaseModel = ProductData(**payload)
-        return validation
-    except ValidationError as e:
-        raise ValueError("Product data validation failed", e)
-
-
 class InventoryUpdatedBy(BaseModel):
     userUuid: str
     userType: str
@@ -47,15 +30,15 @@ class Variants(BaseModel):
 
 class InventoryBalanceChanged(BaseModel):
     organizationUuid: str
-    updatedBy: InventoryUpdatedBy
     timestamp: datetime
+    updatedBy: InventoryUpdatedBy
     product: Product
     inventory: Inventory
 
 
 class ProductData(BaseModel):
     uuid: str
-    category: str
+    category: str | None
     categories: list
     name: str
     variants: list[Variants]
