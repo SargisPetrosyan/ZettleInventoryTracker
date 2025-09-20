@@ -15,83 +15,54 @@ class GoogleDriveClient:
     def __init__(self) -> None:
         creds = get_drive_credentials()
         try:
-            self.client = build("drive", "v3", credentials=creds)
+            self._client = build("drive", "v3", credentials=creds)
         except HttpError as error:
-            raise RuntimeError(f"Failed to build drive client: {error}")
+            raise RuntimeError(f"Failed to build drive _client: {error}")
 
-    def get_drive_file_list(self, folder_id: str, page_size: int):
+    def list(self, page_size: int, q: str, fields: str) -> dict[str, str]:
         """List files matching a query."""
         results = (
-            self.client.files()
-            .list(
-                q=f"'{folder_id}' in parents and trashed = false",
-                pageSize=page_size,
-                fields="nextPageToken, files(id, name)",
-            )
-            .execute()
+            self._client.files().list(q=q, pageSize=page_size, fields=fields).execute()
         )
 
-        return results.get("files", [])
+        return results
 
-    def duplicate_drive_file(
-        self, file_id: Optional[str], file_name: str | None, parent_folder_id: str
-    ):
+    def copy(
+        self,
+        file_id: Optional[str],
+        file_name: str | None,
+        parent_folder_id: str,
+    ) -> dict:
         """Duplicate a file and return metadata for the new copy."""
         return (
-            self.client.files()
+            self._client.files()
             .copy(
                 fileId=file_id, body={"name": file_name, "parents": [parent_folder_id]}
             )
             .execute()
         )
 
-    def delete_drive_file(self, file_id: str) -> dict:
+    def delete(self, file_id: str) -> dict:
         """Delete drive file by id"""
-        return self.client.files().delete(fileId=file_id).execute()
+        return self._client.files().delete(fileId=file_id).execute()
 
-    def get_drive_file(self, file_id: str):
+    def get(self, file_id: str) -> dict:
         return (
-            self.client.files()
+            self._client.files()
             .get(
                 fileId=file_id,
             )
             .execute()
         )
 
-    def create_folder(self, folder_name: str, parent_folder_id: str):
+    def create_folder(self, folder_name: str, parent_folder_id: str) -> dict:
         folder_metadata = {
             "name": folder_name,
             "mimeType": "application/vnd.google-apps.folder",
             "parents": [parent_folder_id],  # parent folder ID
         }
 
-        return self.client.files().create(body=folder_metadata, fields="id").execute()
-
-    def file_exist(self, file_name: str, folder_id: str, folder: bool) -> None | str:
-        file_mime_type = (
-            "application/vnd.google-apps.folder"
-            if folder
-            else "application/vnd.google-apps.spreadsheet"
-        )
-
-        result = (
-            self.client.files()
-            .list(
-                q=f"name = '{file_name}' and mimeType = '{file_mime_type}' and '{folder_id}' in parents and trashed = false",
-                fields="files(id, name)",
-            )
-            .execute()
-        )
-
-        files: list = result.get("files", [])
-
-        if files:
-            if len(files) > 1:
-                print("folder/file has duplicate")
-            print("file/folder already exist")
-            return files[0]
-
-        return None
+        return self._client.files().create(body=folder_metadata, fields="id").execute()
 
 
 class SpreadSheetClient:
