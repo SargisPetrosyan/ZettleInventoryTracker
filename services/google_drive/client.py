@@ -1,5 +1,6 @@
 from googleapiclient.errors import HttpError  # type: ignore
 from googleapiclient.discovery import build  # type: ignore
+from gspread.spreadsheet import Spreadsheet
 from services.google_drive.auth import get_drive_credentials
 from typing import Optional
 import gspread
@@ -79,9 +80,15 @@ class SpreadSheetClient:
     def open_by_key(
         self,
         spreadsheet_id: str,
-        title: str,
+    ) -> Spreadsheet:
+        return self._client.open_by_key(spreadsheet_id)
+
+    def get_worksheet(
+        self,
+        spreadsheet_id: str,
+        worksheet_title: str,
     ):
-        return self._client.open_by_key(spreadsheet_id).worksheet(title)
+        return self.open_by_key(spreadsheet_id).worksheet(worksheet_title)
 
     def spreadsheets_sheets_copy_to(
         self, id: str, sheet_id: int, destination_spreadsheet_id: str

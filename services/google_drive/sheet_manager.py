@@ -1,39 +1,65 @@
 from gspread import utils
-from client import SpreadSheetClient  # type:ignore
-
+from services.google_drive.client import SpreadSheetClient  # type:ignore
+from gspread.exceptions import WorksheetNotFound
+from gspread.worksheet import Worksheet
+from gspread.spreadsheet import Spreadsheet
 
 from typing import Any, Iterable
 
 
-class SheetFileManager:
+class SpreadSheetFileManager:
     def __init__(self, client: SpreadSheetClient) -> None:
         self.client = client
 
-    def copy_spreadsheet(self, spreadsheet_id: str, title: str, folder_id: str):
+    def copy_spreadsheet(self, spreadsheet_id: str, title: str, folder_id: str) -> str:
         return self.client.copy(
             field_id=spreadsheet_id, title=title, folder_id=folder_id
-        )
+        ).id
 
-    def rename_worksheet(self, spreadsheet_id: str, title: str, rename: str):
-        return self.client.open_by_key(spreadsheet_id, title=title).update_title(rename)
+    def rename_worksheet(self, spreadsheet_id: str, title: str, rename: str) -> Any:
+        return self.client.get_worksheet(
+            spreadsheet_id, worksheet_title=title
+        ).update_title(rename)
 
     def copy_sheet_to_spreadsheet(
         self, spreadsheet_id: str, sheet_id: int, destination_spreadsheet_id: str
-    ):
+    ) -> None:
         self.client.spreadsheets_sheets_copy_to(
             id=spreadsheet_id,
             sheet_id=sheet_id,
             destination_spreadsheet_id=destination_spreadsheet_id,
         )
 
+    def worksheet_exist(self, spreadsheet_id: str, sheet_name: str) -> bool | int:
+        try:
+            worksheet = self.client.get_worksheet(
+                spreadsheet_id=spreadsheet_id, worksheet_title=sheet_name
+            )
+        except WorksheetNotFound:
+            return False
+        return worksheet.id
 
-class SheetManager:
+    def get_spreadsheet(self, spreadsheet_id) -> Spreadsheet:
+        return self.client.open_by_key(spreadsheet_id=spreadsheet_id)
+
+    def get_worksheets_with_ids(self, spreadsheet_id: str) -> dict:
+        worksheet_list = self.client.open_by_key(
+            spreadsheet_id=spreadsheet_id
+        ).worksheets()
+
+        worksheets_info: dict[str, int] = {wl.title: wl.index for wl in worksheet_list}
+        return worksheets_info
+
+
+class SpreadSheetManager:
     def __init__(
-        self, spreadsheet_id, worksheet_name: str, client: SpreadSheetClient
+        self,
+        client: SpreadSheetClient,
+        worksheet: Worksheet,
     ) -> None:
         self.client = client
 
-        self.spreadsheet = self.client.open_by_key(spreadsheet_id, title=worksheet_name)
+        self.worksheet: Worksheet = worksheet
 
         self.name_col: int = 1
         self.category_col: int = 2
@@ -56,15 +82,15 @@ class SheetManager:
         new_row: Iterable[Iterable[Any]] = [
             [product_name, category, opening_stock, stock_in, stock_out, closing_stock]
         ]
-        self.spreadsheet.update(
+        self.worksheet.update(
             range_name=f"A{last_element}:F{last_element}", values=new_row
         )
 
     def update_stock_in(self, value: int | float | str, row: int) -> None:
-        self.spreadsheet.update_cell(row=row + 2, col=self.stock_in_col, value=value)
+        self.worksheet.update_cell(row=row + 2, col=self.stock_in_col, value=value)
 
     def update_stock_out(self, value: int | float | str, row: int) -> None:
-        self.spreadsheet.update_cell(row=row + 2, col=self.stock_out_col, value=value)
+        self.worksheet.update_cell(row=row + 2, col=self.stock_out_col, value=value)
 
-    def get_row_data(self):
-        return self.spreadsheet.get(return_type=utils.GridRangeType.ListOfLists)
+    def get_row_data(self) -> list[list[str]]:
+        return self.worksheet.get(return_type=utils.GridRangeType.ListOfLists)

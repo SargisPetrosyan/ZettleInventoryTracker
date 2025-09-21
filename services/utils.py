@@ -15,3 +15,10 @@ def check_stock_in_or_out(before: int, after: int, change: int) -> dict[str, int
         return {"stock_in": 0, "stock_out": change}
     else:
         return {"stock_in": change, "stock_out": 0}
+
+
+def sheet_exist(items: dict[str, int], sheet_name: str) -> int | None:
+    for sheet, index in items.items():
+        if sheet == sheet_name:
+            return index
+    return None

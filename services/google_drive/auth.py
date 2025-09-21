@@ -7,8 +7,10 @@ from google_auth_oauthlib.flow import InstalledAppFlow  # type: ignore
 
 def get_drive_credentials():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    CREDENTIALS_PATH = os.path.join(BASE_DIR, "../../creds/credentials.json")
-    TOKEN_PATH = os.path.join(BASE_DIR, "../../creds/token.json")
+    CREDENTIALS_PATH = os.path.abspath(
+        os.path.join(BASE_DIR, "../../creds/credentials.json")
+    )
+    TOKEN_PATH = os.path.abspath(os.path.join(BASE_DIR, "../../creds/token.json"))
     SCOPES = [
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive",
