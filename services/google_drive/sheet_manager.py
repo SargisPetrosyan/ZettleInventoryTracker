@@ -91,5 +91,5 @@ class WorksheetManager:
     def update_stock_out(self, value: int | float | str, row: int) -> Any:
         self.worksheet.update_cell(row=row + 2, col=self.stock_out_col, value=value)
 
-    def get_row_data(self) -> list[list[str]]:
+    def get_raw_data(self) -> list[list[str]]:
         return self.worksheet.get(return_type=utils.GridRangeType.ListOfLists)

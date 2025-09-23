@@ -1,4 +1,5 @@
 from datetime import datetime
+from services.zettle.validaton import ProductData, InventoryBalanceChanged
 
 
 class FileName:
@@ -7,7 +8,7 @@ class FileName:
         self.month: str = str(date.month).zfill(2)
         self.day: str = str(date.day).zfill(2)
         self.month_name: str = str(date.strftime("%B"))
-        self.name: str = f"{self.year}-{self.month}-{self.month_name}"
+        self.file_name: str = f"{self.year}-{self.month}-{self.month_name}"
 
 
 def check_stock_in_or_out(before: int, after: int, change: int) -> dict[str, int]:

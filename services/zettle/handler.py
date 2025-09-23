@@ -5,12 +5,10 @@ from services.google_drive.sheet_manager import (
 )
 from gspread.spreadsheet import Spreadsheet
 from gspread.worksheet import Worksheet
-from services.zettle.validaton import InventoryBalanceChanged  # type:ignore
+from services.zettle.validaton import validate_inventory_update, validate_product_data  # type:ignore
 from services.utils import FileName
 import json
 import config
-
-from dotenv import load_dotenv
 
 ROOT_FOLDER: str = config.ROOT_FOLDER_ID
 DAY_TEMPLATE: str = config.DAY_TEMPLATE
@@ -22,8 +20,6 @@ with open("data/InventoryBalanceChanged.json", "r") as fp:
 with open("data/Product.json", "r") as fp:
     PRODUCT_UPDATE = json.load(fp)
 
-load_dotenv()
-
 
 class ZettleWebhookHandler:
     def __init__(self) -> None:
@@ -32,7 +28,8 @@ class ZettleWebhookHandler:
 
     def process_webhook(self):
         # validating webhook data
-        inventory_update = InventoryBalanceChanged(**INVENTORY_UPDATE)
+        inventory_update = validate_inventory_update(INVENTORY_UPDATE)
+        product_data = validate_product_data(PRODUCT_UPDATE)
 
         # defining managers
         drive_file_manager = DriveFileManager(self.drive_client)
@@ -55,7 +52,7 @@ class ZettleWebhookHandler:
             )
         # Check if file exist, if not create it
         spreadsheet_id: str | None = drive_file_manager.spreadsheet_exist_by_name(
-            spreadsheet_name=name.name,
+            spreadsheet_name=name.file_name,
             parent_folder_id=year_folder_id,
             page_size=100,
         )
@@ -63,7 +60,7 @@ class ZettleWebhookHandler:
         if not spreadsheet_id:
             spreadsheet_copy: Spreadsheet = spreadsheet_file_manager.copy_spreadsheet(
                 spreadsheet_id=DAY_TEMPLATE,
-                title=name.name,
+                title=name.file_name,
                 folder_id=year_folder_id,
             )
 

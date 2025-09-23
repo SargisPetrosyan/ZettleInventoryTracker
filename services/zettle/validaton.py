@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ValidationError
 from datetime import datetime
+from fastapi.responses import JSONResponse
+import json
 
 
 class InventoryUpdatedBy(BaseModel):
@@ -45,3 +47,21 @@ class ProductData(BaseModel):
     variants: list[Variants]
     updated: str
     created: str
+
+
+def validate_inventory_update(response: JSONResponse) -> InventoryBalanceChanged:
+    response_loads: dict = json.loads(response.body)
+    try:
+        validated = InventoryBalanceChanged(**response_loads)
+        return validated
+    except ValidationError:
+        raise ValidationError("your model doesn't have valid data")
+
+
+def validate_product_data(response: JSONResponse) -> ProductData:
+    response_loads: dict = json.loads(response.body)
+    try:
+        validated = ProductData(**response_loads)
+        return validated
+    except ValidationError:
+        raise ValidationError("your model doesn't have valid data")
