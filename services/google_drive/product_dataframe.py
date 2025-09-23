@@ -7,7 +7,7 @@ class ProductDataFrame:
             sheet[1:], columns=sheet[0], index="name"
         )
 
-    def get_product_data(self, product_name: str):
+    def get_product_data(self, product_name: str) -> DataFrame | None:
         return self.sheet_data.get([f"{product_name}"])
 
     def get_product_row_index(self, product_name: str):

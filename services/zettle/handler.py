@@ -1,14 +1,15 @@
 from services.google_drive.client import SpreadSheetClient, GoogleDriveClient
 from services.google_drive.drive_manager import DriveFileManager
-from services.google_drive.sheet_manager import (
-    SpreadSheetFileManager,
-)
+from services.google_drive.sheet_manager import SpreadSheetFileManager, WorksheetManager
 from gspread.spreadsheet import Spreadsheet
 from gspread.worksheet import Worksheet
 from services.zettle.validaton import validate_inventory_update, validate_product_data  # type:ignore
 from services.utils import FileName
+from utils import check_stock_in_or_out
+from services.google_drive.product_dataframe import ProductDataFrame
 import json
 import config
+from pandas import DataFrame
 
 ROOT_FOLDER: str = config.ROOT_FOLDER_ID
 DAY_TEMPLATE: str = config.DAY_TEMPLATE
@@ -95,3 +96,30 @@ class ZettleWebhookHandler:
             spreadsheet_file_manager.delete_worksheet(
                 spreadsheet=spreadsheet, title=WORKSHEET_SAMPLE_NAME
             )
+
+        # create worksheet manager
+        worksheet_manager = WorksheetManager(worksheet)
+
+        # get raw data of worksheet for pandas
+        worksheet_raw_data: list = worksheet_manager.get_raw_data()
+
+        # convert it to pandas
+        dataframe: ProductDataFrame = ProductDataFrame(worksheet_raw_data)
+
+        product_data: DataFrame | None = dataframe.get_product_data(
+            product_name=product_data.name
+        )
+        if not product_data:
+            dataframe.last_row_index()
+            worksheet_manager.add_product()
+
+        # # check if updated inventory is stock in or stock out
+        # stock_in_or_out: tuple = check_stock_in_or_out(
+        #     before=inventory_update.inventory.before,
+        #     after=inventory_update.inventory.after,
+        #     change=inventory_update.inventory.change,
+        # )
+
+        # if stock_in_or_out[0] = "stock_in":
+        #     worksheet_manager.update_stock_in(stock_in_or_out[1])
+        # worksheet.
