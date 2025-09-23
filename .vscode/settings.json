@@ -1,7 +1,10 @@
 {
     "cSpell.words": [
         "creds",
+        "dotenv",
         "googleapiclient",
-        "sreadsheet"
+        "sreadsheet",
+        "validaton",
+        "zettle"
     ]
 }
