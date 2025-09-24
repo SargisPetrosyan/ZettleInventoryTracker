@@ -103,23 +103,42 @@ class ZettleWebhookHandler:
         # get raw data of worksheet for pandas
         worksheet_raw_data: list = worksheet_manager.get_raw_data()
 
-        # convert it to pandas
+        # convert sheet to pandas DataFrame
         dataframe: ProductDataFrame = ProductDataFrame(worksheet_raw_data)
 
-        product_data: DataFrame | None = dataframe.get_product_data(
+        product_data_dataframe: DataFrame | None = dataframe.get_product_data(
             product_name=product_data.name
         )
-        if not product_data:
-            dataframe.last_row_index()
-            worksheet_manager.add_product()
+        stock_in_or_out: dict[str, int] = check_stock_in_or_out(
+            before=inventory_update.inventory.before,
+            after=inventory_update.inventory.after,
+            change=inventory_update.inventory.change,
+        )
 
-        # # check if updated inventory is stock in or stock out
-        # stock_in_or_out: tuple = check_stock_in_or_out(
-        #     before=inventory_update.inventory.before,
-        #     after=inventory_update.inventory.after,
-        #     change=inventory_update.inventory.change,
-        # )
+        if product_data_dataframe is None:
+            last_row: int = dataframe.last_row_index()
 
-        # if stock_in_or_out[0] = "stock_in":
-        #     worksheet_manager.update_stock_in(stock_in_or_out[1])
-        # worksheet.
+            worksheet_manager.add_product(
+                product_name=product_data.name,
+                category=product_data.category,
+                stock_in=stock_in_or_out["stock_in"],
+                stock_out=stock_in_or_out["stock_out"],
+                opening_stock=stock_in_or_out["before"],
+                last_row=last_row,
+            )
+        else:
+            # increment it itn dataframe
+            increment_in: dict = dataframe.increment_stock_in(
+                product_data.name, amount=stock_in_or_out["stock_in"]
+            )
+            increment_out: dict = dataframe.increment_stock_out(
+                product_data.name, amount=stock_in_or_out["stock_out"]
+            )
+
+            # update product
+            worksheet_manager.update_stock_in(
+                value=increment_in["value"], row=increment_in["row"]
+            )
+            worksheet_manager.update_stock_out(
+                value=increment_out["value"], row=increment_out["row"]
+            )

@@ -70,16 +70,15 @@ class WorksheetManager:
     def add_product(
         self,
         product_name: str,
-        category: str,
+        category: str | None,
         opening_stock: int,
         stock_in: int,
         stock_out: int,
-        closing_stock: int,
         last_row: int,
     ) -> Any:
         last_element: int = last_row + 1
         new_row: Iterable[Iterable[Any]] = [
-            [product_name, category, opening_stock, stock_in, stock_out, closing_stock]
+            [product_name, category, opening_stock, stock_in, stock_out]
         ]
         self.worksheet.update(
             range_name=f"A{last_element}:F{last_element}", values=new_row
