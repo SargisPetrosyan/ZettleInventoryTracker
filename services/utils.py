@@ -12,9 +12,9 @@ class FileName:
 
 def check_stock_in_or_out(before: int, after: int, change: int) -> dict[str, int]:
     if before > after:
-        return {"stock_in": 0, "stock_out": change, "before": after}
+        return {"stock_in": 0, "stock_out": change, "before": before}
     else:
-        return {"stock_in": change, "stock_out": 0, "before": after}
+        return {"stock_in": change, "stock_out": 0, "before": before}
 
 
 def sheet_exist(items: dict[str, int], sheet_name: str) -> int | None:

@@ -7,8 +7,12 @@ class ProductDataFrame:
             sheet[1:], columns=sheet[0], index="name"
         )
 
-    def get_product_data(self, product_name: str) -> DataFrame | None:
-        return self.sheet_data.get([f"{product_name}"])
+    def product_exist(self, product_name: str) -> bool:
+        try:
+            print(self.sheet_data.loc[product_name])
+            return True
+        except KeyError:
+            return False
 
     def get_product_row_index(self, product_name: str):
         return self.sheet_data.index.get_loc(product_name)

@@ -3,17 +3,17 @@ from services.google_drive.drive_manager import DriveFileManager
 from services.google_drive.sheet_manager import SpreadSheetFileManager, WorksheetManager
 from gspread.spreadsheet import Spreadsheet
 from gspread.worksheet import Worksheet
-from services.zettle.validaton import validate_inventory_update, validate_product_data  # type:ignore
+from services.zettle.validaton import InventoryBalanceChanged, ProductData
 from services.utils import FileName
-from utils import check_stock_in_or_out
+from services.utils import check_stock_in_or_out
 from services.google_drive.product_dataframe import ProductDataFrame
 import json
 import config
-from pandas import DataFrame
 
 ROOT_FOLDER: str = config.ROOT_FOLDER_ID
 DAY_TEMPLATE: str = config.DAY_TEMPLATE
 WORKSHEET_SAMPLE_NAME: str = config.WORKSHEET_SAMPLE_NAME
+WORKSHEET_SAMPLE_COPY_NAME: str = config.WORKSHEET_SAMPLE_COPY_NAME
 
 
 with open("data/InventoryBalanceChanged.json", "r") as fp:
@@ -29,8 +29,8 @@ class ZettleWebhookHandler:
 
     def process_webhook(self):
         # validating webhook data
-        inventory_update = validate_inventory_update(INVENTORY_UPDATE)
-        product_data = validate_product_data(PRODUCT_UPDATE)
+        inventory_update = InventoryBalanceChanged(**INVENTORY_UPDATE)
+        product_data = ProductData(**PRODUCT_UPDATE)
 
         # defining managers
         drive_file_manager = DriveFileManager(self.drive_client)
@@ -102,11 +102,12 @@ class ZettleWebhookHandler:
 
         # get raw data of worksheet for pandas
         worksheet_raw_data: list = worksheet_manager.get_raw_data()
+        print(worksheet_raw_data)
 
         # convert sheet to pandas DataFrame
         dataframe: ProductDataFrame = ProductDataFrame(worksheet_raw_data)
 
-        product_data_dataframe: DataFrame | None = dataframe.get_product_data(
+        product_data_dataframe: bool = dataframe.product_exist(
             product_name=product_data.name
         )
         stock_in_or_out: dict[str, int] = check_stock_in_or_out(
@@ -115,7 +116,7 @@ class ZettleWebhookHandler:
             change=inventory_update.inventory.change,
         )
 
-        if product_data_dataframe is None:
+        if not product_data_dataframe:
             last_row: int = dataframe.last_row_index()
 
             worksheet_manager.add_product(
@@ -127,7 +128,7 @@ class ZettleWebhookHandler:
                 last_row=last_row,
             )
         else:
-            # increment it itn dataframe
+            # increment it in dataframe
             increment_in: dict = dataframe.increment_stock_in(
                 product_data.name, amount=stock_in_or_out["stock_in"]
             )
