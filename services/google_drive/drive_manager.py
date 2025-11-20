@@ -6,12 +6,12 @@ from typing import Any
 
 load_dotenv()
 
-ROOT_FOLDER = os.getenv("ROOT_FOLDER_ID")
+ROOT_FOLDER: str | None = os.getenv(key="ROOT_FOLDER_ID")
 
 
 class DriveFileManager:
     def __init__(self, client: GoogleDriveClient) -> None:
-        self.client = client
+        self.client: GoogleDriveClient = client
 
     def create_year_folder(
         self,
@@ -19,7 +19,7 @@ class DriveFileManager:
         parent_folder_id: str,
     ) -> str:
         # create year folder
-        year_folder = self.client.create_folder(
+        year_folder: dict[Any,Any] = self.client.create_folder(
             folder_name=year, parent_folder_id=parent_folder_id
         )
 

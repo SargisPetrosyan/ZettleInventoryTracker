@@ -1,28 +1,29 @@
+from google.oauth2.credentials import Credentials
 from googleapiclient.errors import HttpError  # type: ignore
 from googleapiclient.discovery import build  # type: ignore
 from gspread.spreadsheet import Spreadsheet
 from services.google_drive.auth import get_drive_credentials
-from typing import Optional
+from typing import Any, Optional
 import gspread
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-root = os.getenv("ROOT_FOLDER_ID")
+root: str | None = os.getenv(key="ROOT_FOLDER_ID")
 
 
 class GoogleDriveClient:
     def __init__(self) -> None:
-        creds = get_drive_credentials()
+        creds: Credentials = get_drive_credentials()
         try:
-            self._client = build("drive", "v3", credentials=creds)
+            self._client: Any = build(serviceName="drive", version="v3", credentials=creds)
         except HttpError as error:
             raise RuntimeError(f"Failed to build drive _client: {error}")
 
     def list(self, page_size: int, q: str, fields: str) -> dict[str, str]:
         """List files matching a query."""
-        results = (
+        results:Any = (
             self._client.files().list(q=q, pageSize=page_size, fields=fields).execute()
         )
 
@@ -57,7 +58,7 @@ class GoogleDriveClient:
         )
 
     def create_folder(self, folder_name: str, parent_folder_id: str) -> dict:
-        folder_metadata = {
+        folder_metadata:dict[str, str | list] = {
             "name": folder_name,
             "mimeType": "application/vnd.google-apps.folder",
             "parents": [parent_folder_id],  # parent folder ID
@@ -68,27 +69,27 @@ class GoogleDriveClient:
 
 class SpreadSheetClient:
     def __init__(self) -> None:
-        credentials = get_drive_credentials()
+        credentials: Credentials = get_drive_credentials()
         try:
-            self._client = gspread.authorize(credentials)
+            self._client: gspread.Client = gspread.authorize(credentials=credentials)
         except HttpError as error:
             raise RuntimeError(f"Failed to build sheet client: {error}")
 
-    def copy(self, field_id: str, title: str, folder_id: str):
+    def copy(self, field_id: str, title: str, folder_id: str) -> Spreadsheet:
         return self._client.copy(file_id=field_id, title=title, folder_id=folder_id)
 
     def open_by_key(
         self,
         spreadsheet_id: str,
     ) -> Spreadsheet:
-        return self._client.open_by_key(spreadsheet_id)
+        return self._client.open_by_key(key=spreadsheet_id)
 
     def get_worksheet(
         self,
         spreadsheet_id: str,
         worksheet_title: str,
-    ):
-        return self.open_by_key(spreadsheet_id).worksheet(worksheet_title)
+    ) -> gspread.Worksheet:
+        return self.open_by_key(spreadsheet_id=spreadsheet_id).worksheet(title=worksheet_title)
 
     def spreadsheets_sheets_copy_to(
         self, id: str, sheet_id: int, destination_spreadsheet_id: str

@@ -1,12 +1,13 @@
 from datetime import datetime
 
 
+
 class FileName:
     def __init__(self, date: datetime) -> None:
-        self.year: str = str(date.year)
-        self.month: str = str(date.month).zfill(2)
-        self.day: str = str(date.day).zfill(2)
-        self.month_name: str = str(date.strftime("%B"))
+        self.year: str = str(object=date.year)
+        self.month: str = str(object=date.month).zfill(2)
+        self.day: str = str(object=date.day).zfill(2)
+        self.month_name: str = str(object=date.strftime("%B"))
         self.file_name: str = f"{self.year}-{self.month}-{self.month_name}"
 
 

@@ -9,7 +9,7 @@ from typing import Any, Iterable
 
 class SpreadSheetFileManager:
     def __init__(self, client: SpreadSheetClient) -> None:
-        self.client = client
+        self.client: SpreadSheetClient = client
 
     def copy_spreadsheet(
         self, spreadsheet_id: str, title: str, folder_id: str
@@ -29,7 +29,7 @@ class SpreadSheetFileManager:
 
     def worksheet_exist(self, spreadsheet_id: str, sheet_name: str) -> bool | Worksheet:
         try:
-            worksheet = self.client.get_worksheet(
+            worksheet: Worksheet = self.client.get_worksheet(
                 spreadsheet_id=spreadsheet_id, worksheet_title=sheet_name
             )
         except WorksheetNotFound:
@@ -42,15 +42,15 @@ class SpreadSheetFileManager:
     def get_worksheet_by_title(
         self, title: str, spreadsheet: Spreadsheet
     ) -> Worksheet | None:
-        name: str = str(title)
+        name: str = str(object=title)
         try:
-            worksheet: Worksheet = spreadsheet.worksheet(name)
+            worksheet: Worksheet = spreadsheet.worksheet(title=name)
             return worksheet
         except WorksheetNotFound:
             return None
 
     def delete_worksheet(self, spreadsheet: Spreadsheet, title: str) -> None:
-        worksheet: Worksheet = spreadsheet.worksheet(f"{title}")
+        worksheet: Worksheet = spreadsheet.worksheet(title=f"{title}")
         spreadsheet.del_worksheet(worksheet)
 
 

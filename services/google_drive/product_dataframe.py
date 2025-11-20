@@ -3,8 +3,8 @@ from pandas import DataFrame  # type:ignore
 
 class ProductDataFrame:
     def __init__(self, sheet) -> None:
-        self.sheet_data = DataFrame.from_records(
-            sheet[1:], columns=sheet[0], index="name"
+        self.sheet_data: DataFrame = DataFrame.from_records(
+            data=sheet[1:], columns=sheet[0], index="name"
         )
 
     def product_exist(self, product_name: str) -> bool:
@@ -15,7 +15,7 @@ class ProductDataFrame:
             return False
 
     def get_product_row_index(self, product_name: str):
-        return self.sheet_data.index.get_loc(product_name)
+        return self.sheet_data.index.get_loc(key=product_name)
 
     def increment_stock_in(self, product_name: str, amount: int) -> dict:
         row_index = self.get_product_row_index(product_name)
