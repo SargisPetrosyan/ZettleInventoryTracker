@@ -3,6 +3,9 @@ from services.google_drive.client import SpreadSheetClient  # type:ignore
 from gspread.exceptions import WorksheetNotFound
 from gspread.worksheet import Worksheet
 from gspread.spreadsheet import Spreadsheet
+import logging
+
+logger: logging.Logger = logging.getLogger(name=__name__)
 
 from typing import Any, Iterable
 
@@ -10,6 +13,7 @@ from typing import Any, Iterable
 class SpreadSheetFileManager:
     def __init__(self, client: SpreadSheetClient) -> None:
         self.client: SpreadSheetClient = client
+        logger.info("'SpreadSheetFileManager' was created ")
 
     def copy_spreadsheet(
         self, spreadsheet_id: str, title: str, folder_id: str

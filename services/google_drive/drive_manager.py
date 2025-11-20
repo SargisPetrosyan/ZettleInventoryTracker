@@ -1,6 +1,9 @@
 from services.google_drive.client import GoogleDriveClient
 import os
 from dotenv import load_dotenv
+import logging
+
+logger: logging.Logger = logging.getLogger(name=__name__)
 
 from typing import Any
 
@@ -11,7 +14,9 @@ ROOT_FOLDER: str | None = os.getenv(key="ROOT_FOLDER_ID")
 
 class DriveFileManager:
     def __init__(self, client: GoogleDriveClient) -> None:
+        
         self.client: GoogleDriveClient = client
+        logger.info("'DriveFileManager' was created ")
 
     def create_year_folder(
         self,

@@ -13,8 +13,10 @@ dependencies = [
     "google-auth-oauthlib>=1.2.2",
     "gsheet-pandas>=0.2.6",
     "gspread>=6.2.1",
+    "httpx>=0.28.1",
     "mypy>=1.17.1",
     "rich>=14.1.0",
+    "uvicorn>=0.38.0",
 ]
 
 [tool.mypy]

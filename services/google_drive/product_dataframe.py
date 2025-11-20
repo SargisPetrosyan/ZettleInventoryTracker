@@ -6,6 +6,7 @@ class ProductDataFrame:
         self.sheet_data: DataFrame = DataFrame.from_records(
             data=sheet[1:], columns=sheet[0], index="name"
         )
+        
 
     def product_exist(self, product_name: str) -> bool:
         try:

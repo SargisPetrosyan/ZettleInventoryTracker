@@ -6,7 +6,11 @@ from services.google_drive.auth import get_drive_credentials
 from typing import Any, Optional
 import gspread
 import os
+import logging
 from dotenv import load_dotenv
+
+
+logger: logging.Logger = logging.getLogger(name=__name__)
 
 load_dotenv()
 
@@ -17,12 +21,16 @@ class GoogleDriveClient:
     def __init__(self) -> None:
         creds: Credentials = get_drive_credentials()
         try:
+            logger.info("creating google drive client")
             self._client: Any = build(serviceName="drive", version="v3", credentials=creds)
+            logger.info("google drive client was created")
         except HttpError as error:
+            logger.critical(f"Failed to build drive _client: {error}")
             raise RuntimeError(f"Failed to build drive _client: {error}")
 
     def list(self, page_size: int, q: str, fields: str) -> dict[str, str]:
         """List files matching a query."""
+        logger.info(f"list files page_size:'{page_size}', fields ")
         results:Any = (
             self._client.files().list(q=q, pageSize=page_size, fields=fields).execute()
         )
@@ -71,8 +79,11 @@ class SpreadSheetClient:
     def __init__(self) -> None:
         credentials: Credentials = get_drive_credentials()
         try:
+            logger.info("SpreadSheetClient creation")
             self._client: gspread.Client = gspread.authorize(credentials=credentials)
+            logger.info("SpreadSheetClient was create successfully")
         except HttpError as error:
+            logger.critical("an occur error during creation 'SpreadSheetClient'")
             raise RuntimeError(f"Failed to build sheet client: {error}")
 
     def copy(self, field_id: str, title: str, folder_id: str) -> Spreadsheet:
