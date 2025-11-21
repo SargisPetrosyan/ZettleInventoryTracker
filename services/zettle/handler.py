@@ -33,16 +33,15 @@ class ZettleWebhookHandler:
             client=self.spreadsheet_client
         )
 
-    def process_webhook(self, request: dict) -> None:
+    def process_webhook(self, request: InventoryBalanceChanged) -> None:
         # validating webhook data
-        logger.info("")
-        inventory_update = InventoryBalanceChanged(**request)
 
         product_data = ProductData(**PRODUCT_UPDATE)
 
         # crete file name by date
-        name = FileName(date=inventory_update.timestamp)
+        name = FileName(date=request.timestamp)
 
+        logger.info(f"check if 'year: {name.year}' folder exist")
         # check if year folder exist if not create it
         year_folder_id: str | None = self.drive_file_manager.folder_exist_by_name(
             folder_name=name.year,
@@ -51,12 +50,18 @@ class ZettleWebhookHandler:
         )
 
         if not year_folder_id:
+            logger.info(f"'year: {name.year}' was not found")
+            logger.info(f"creating 'year: {name.year}' folder")
             year_folder_id = self.drive_file_manager.create_year_folder(
                 year=name.year,
                 parent_folder_id=ROOT_FOLDER,
             )
+            logger.info(f"'year: {name.year}' folder was created!!")
+
+        logger.info(f"'year: {name.year}' folder was found")
 
         # Check if file exist, if not create it
+        logger.info(f"check if file 'file_name: {name.file_name}' exist ")
         spreadsheet_id: str | None = self.drive_file_manager.spreadsheet_exist_by_name(
             spreadsheet_name=name.file_name,
             parent_folder_id=year_folder_id,
@@ -71,41 +76,53 @@ class ZettleWebhookHandler:
                     folder_id=year_folder_id,
                 )
             )
-
+            logger.info(f"file 'file_name: {name.file_name}' was not found")
+            logger.info(f"creating new file 'file_name: {name.file_name}'")
             spreadsheet_id = spreadsheet_copy.id
 
             spreadsheet: Spreadsheet = self.spreadsheet_file_manager.get_spreadsheet(
                 spreadsheet_id=spreadsheet_id
             )
 
+            logger.info(
+                f"rename template names from 'WORKSHEET_SAMPLE_NAME to {name.day}'"
+            )
             # rename copied worksheet tamale name
             worksheet = spreadsheet.worksheet(title=WORKSHEET_SAMPLE_NAME)
 
             worksheet.update_title(title=name.day)
+            logger.info(
+                f"renaming template names from 'WORKSHEET_SAMPLE_NAME to {name.day}' was successfully done!!!"
+            )
 
         # create spreadsheet_object
         else:
+            logger.info(f"file 'file_name: {name.file_name}' was found!!!")
             spreadsheet: Spreadsheet = self.spreadsheet_file_manager.get_spreadsheet(
                 spreadsheet_id=spreadsheet_id
             )
 
+            logger.info(f"check worksheet by name 'worksheet: {name.day}' exist")
             # check if worksheet not exist create it
             worksheet: Worksheet | None = (
                 self.spreadsheet_file_manager.get_worksheet_by_title(
                     spreadsheet=spreadsheet, title=name.day
                 )
             )
-
             if not worksheet:
+                logger.info(f"worksheet by name 'worksheet: {name.day}' not exist!!!")
                 # copy sheet sample to spreadsheet
                 self.spreadsheet_file_manager.copy_sheet_to_spreadsheet(
                     spreadsheet_id=DAY_TEMPLATE,
                     sheet_id=0,
                     destination_spreadsheet_id=spreadsheet.id,
                 )
-
+                logger.info(f"copping worksheet form template")
                 # rename copied worksheet tamale name
                 worksheet = spreadsheet.worksheet(title=WORKSHEET_SAMPLE_COPY_NAME)
+                logger.info(
+                    f"renaming worksheet form '{WORKSHEET_SAMPLE_COPY_NAME} to {name.day}'"
+                )
 
                 worksheet.update_title(title=name.day)
 
@@ -113,6 +130,7 @@ class ZettleWebhookHandler:
         worksheet_manager = WorksheetManager(worksheet=worksheet)
 
         # get raw data of worksheet for pandas
+        logger.info(f"get worksheet raw data nested lists")
         worksheet_raw_data: list = worksheet_manager.get_raw_data()
 
         # convert sheet to pandas DataFrame
@@ -121,14 +139,14 @@ class ZettleWebhookHandler:
         product_exist: bool = dataframe.product_exist(product_name=product_data.name)
 
         stock_in_or_out: dict[str, int] = check_stock_in_or_out(
-            before=inventory_update.inventory.before,
-            after=inventory_update.inventory.after,
-            change=inventory_update.inventory.change,
+            before=request.inventory.before,
+            after=request.inventory.after,
+            change=request.inventory.change,
         )
 
         if not product_exist:
             last_row: int = dataframe.last_row_index()
-
+            logger.info("product doesn't exist creating product in dataframe ")
             worksheet_manager.add_product(
                 product_name=product_data.name,
                 category=product_data.category,
@@ -140,21 +158,25 @@ class ZettleWebhookHandler:
         else:
             if stock_in_or_out["stock_out"] == 0:
                 # increment it in dataframe
+                logger.info("increment stock in in dataframe")
                 increment_in: dict = dataframe.increment_stock_in(
                     product_name=product_data.name, amount=stock_in_or_out["stock_in"]
                 )
 
+                logger.info("update stock in in worksheet")
                 # update_worksheet
                 worksheet_manager.update_stock_in(
                     value=increment_in["value"], row=increment_in["row"]
                 )
             if stock_in_or_out["stock_in"] == 0:
                 # increment it in dataframe
+                logger.info("increment stock out in dataframe")
                 increment_out: dict = dataframe.increment_stock_out(
                     product_name=product_data.name, amount=stock_in_or_out["stock_out"]
                 )
 
                 # update_worksheet
+                logger.info("update stock in in worksheet")
                 worksheet_manager.update_stock_out(
                     value=increment_out["value"], row=increment_out["row"]
                 )

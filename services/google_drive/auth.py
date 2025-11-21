@@ -49,6 +49,3 @@ def get_drive_credentials() -> Credentials:
             with open(TOKEN_PATH, "w") as token:
                 token.write(creds.to_json())  # type: ignore
     return creds  # type: ignore
-
-
-get_drive_credentials()

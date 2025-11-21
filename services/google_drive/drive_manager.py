@@ -49,6 +49,7 @@ class DriveFileManager:
 
         # check if multiple files raise error
         if len(files) > 1:
+            logger.warning(f"folder 'folder: {folder_name}' has duplicate")
             raise ValueError(f"{folder_name} has duplicate")
         return files[0]["id"]
 
