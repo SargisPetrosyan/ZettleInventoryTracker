@@ -14,7 +14,6 @@ ROOT_FOLDER: str | None = os.getenv(key="ROOT_FOLDER_ID")
 
 class DriveFileManager:
     def __init__(self, client: GoogleDriveClient) -> None:
-        
         self.client: GoogleDriveClient = client
         logger.info("'DriveFileManager' was created ")
 
@@ -24,7 +23,7 @@ class DriveFileManager:
         parent_folder_id: str,
     ) -> str:
         # create year folder
-        year_folder: dict[Any,Any] = self.client.create_folder(
+        year_folder: dict[Any, Any] = self.client.create_folder(
             folder_name=year, parent_folder_id=parent_folder_id
         )
 

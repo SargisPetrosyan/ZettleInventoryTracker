@@ -3,11 +3,14 @@ from webbrowser import get
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from google.auth.external_account_authorized_user import Credentials as ExternalAccountAuthorized
+from google.auth.external_account_authorized_user import (
+    Credentials as ExternalAccountAuthorized,
+)
 from google_auth_oauthlib.flow import InstalledAppFlow  # type: ignore
 import logging
 
 logger: logging.Logger = logging.getLogger(name=__name__)
+
 
 def get_drive_credentials() -> Credentials:
     logger.info("getting google drive credentials")
@@ -15,16 +18,20 @@ def get_drive_credentials() -> Credentials:
     CREDENTIALS_PATH: str = os.path.abspath(
         path=os.path.join(BASE_DIR, "../../creds/credentials.json")
     )
-    TOKEN_PATH: str = os.path.abspath(path=os.path.join(BASE_DIR, "../../creds/token.json"))
+    TOKEN_PATH: str = os.path.abspath(
+        path=os.path.join(BASE_DIR, "../../creds/token.json")
+    )
     SCOPES: list[str] = [
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive",
     ]
     creds: Credentials | ExternalAccountAuthorized | None = None
-    
+
     if os.path.exists(path=TOKEN_PATH):
-        logger.warning("token file wasn't found start authentication")
-        creds = Credentials.from_authorized_user_file(filename=TOKEN_PATH, scopes=SCOPES)
+        logger.warning("token file exist found start authentication")
+        creds = Credentials.from_authorized_user_file(
+            filename=TOKEN_PATH, scopes=SCOPES
+        )
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -32,11 +39,16 @@ def get_drive_credentials() -> Credentials:
             creds.refresh(request=Request())
 
         else:
-            flow: InstalledAppFlow = InstalledAppFlow.from_client_secrets_file(client_secrets_file=CREDENTIALS_PATH, scopes=SCOPES)
+            flow: InstalledAppFlow = InstalledAppFlow.from_client_secrets_file(
+                client_secrets_file=CREDENTIALS_PATH, scopes=SCOPES
+            )
             creds = flow.run_local_server(port=0)
             assert credits is not None
             # Save the credentials for the next run
             logger.info("set up new token.json file")
             with open(TOKEN_PATH, "w") as token:
-                token.write(creds.to_json()) # type: ignore
-    return creds # type: ignore
+                token.write(creds.to_json())  # type: ignore
+    return creds  # type: ignore
+
+
+get_drive_credentials()

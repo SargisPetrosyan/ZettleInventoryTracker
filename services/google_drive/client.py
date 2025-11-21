@@ -22,7 +22,9 @@ class GoogleDriveClient:
         creds: Credentials = get_drive_credentials()
         try:
             logger.info("creating google drive client")
-            self._client: Any = build(serviceName="drive", version="v3", credentials=creds)
+            self._client: Any = build(
+                serviceName="drive", version="v3", credentials=creds
+            )
             logger.info("google drive client was created")
         except HttpError as error:
             logger.critical(f"Failed to build drive _client: {error}")
@@ -31,7 +33,7 @@ class GoogleDriveClient:
     def list(self, page_size: int, q: str, fields: str) -> dict[str, str]:
         """List files matching a query."""
         logger.info(f"list files page_size:'{page_size}', fields ")
-        results:Any = (
+        results: Any = (
             self._client.files().list(q=q, pageSize=page_size, fields=fields).execute()
         )
 
@@ -66,7 +68,7 @@ class GoogleDriveClient:
         )
 
     def create_folder(self, folder_name: str, parent_folder_id: str) -> dict:
-        folder_metadata:dict[str, str | list] = {
+        folder_metadata: dict[str, str | list] = {
             "name": folder_name,
             "mimeType": "application/vnd.google-apps.folder",
             "parents": [parent_folder_id],  # parent folder ID
@@ -100,7 +102,9 @@ class SpreadSheetClient:
         spreadsheet_id: str,
         worksheet_title: str,
     ) -> gspread.Worksheet:
-        return self.open_by_key(spreadsheet_id=spreadsheet_id).worksheet(title=worksheet_title)
+        return self.open_by_key(spreadsheet_id=spreadsheet_id).worksheet(
+            title=worksheet_title
+        )
 
     def spreadsheets_sheets_copy_to(
         self, id: str, sheet_id: int, destination_spreadsheet_id: str

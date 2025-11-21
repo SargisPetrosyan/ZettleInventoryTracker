@@ -1,7 +1,6 @@
 from datetime import datetime
 
 
-
 class FileName:
     def __init__(self, date: datetime) -> None:
         self.year: str = str(object=date.year)

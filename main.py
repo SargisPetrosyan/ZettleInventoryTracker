@@ -13,8 +13,8 @@ app = FastAPI()
 
 handler = ZettleWebhookHandler()
 
+
 @app.post(path="/store_inventory_data_webhook")
-def store_inventory_data_webhook(request:InventoryBalanceChanged) -> None:
+def store_inventory_data_webhook(request: InventoryBalanceChanged) -> None:
     request_body: dict[str, Any] = request.model_dump()
     handler.process_webhook(request=request_body)
-    

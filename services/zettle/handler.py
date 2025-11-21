@@ -23,20 +23,23 @@ WORKSHEET_SAMPLE_COPY_NAME: str = config.WORKSHEET_SAMPLE_COPY_NAME
 with open("data/Product.json", "r") as fp:
     PRODUCT_UPDATE = json.load(fp)
 
+
 class ZettleWebhookHandler:
     def __init__(self) -> None:
         self.drive_client: GoogleDriveClient = GoogleDriveClient()
         self.spreadsheet_client: SpreadSheetClient = SpreadSheetClient()
         self.drive_file_manager = DriveFileManager(client=self.drive_client)
-        self.spreadsheet_file_manager = SpreadSheetFileManager(client=self.spreadsheet_client)
+        self.spreadsheet_file_manager = SpreadSheetFileManager(
+            client=self.spreadsheet_client
+        )
 
-    def process_webhook(self, request:dict) -> None:
+    def process_webhook(self, request: dict) -> None:
         # validating webhook data
         logger.info("")
         inventory_update = InventoryBalanceChanged(**request)
-        
+
         product_data = ProductData(**PRODUCT_UPDATE)
-        
+
         # crete file name by date
         name = FileName(date=inventory_update.timestamp)
 
@@ -52,7 +55,7 @@ class ZettleWebhookHandler:
                 year=name.year,
                 parent_folder_id=ROOT_FOLDER,
             )
-            
+
         # Check if file exist, if not create it
         spreadsheet_id: str | None = self.drive_file_manager.spreadsheet_exist_by_name(
             spreadsheet_name=name.file_name,
@@ -61,43 +64,50 @@ class ZettleWebhookHandler:
         )
 
         if not spreadsheet_id:
-            spreadsheet_copy: Spreadsheet = self.spreadsheet_file_manager.copy_spreadsheet(
-                spreadsheet_id=DAY_TEMPLATE,
-                title=name.file_name,
-                folder_id=year_folder_id,
+            spreadsheet_copy: Spreadsheet = (
+                self.spreadsheet_file_manager.copy_spreadsheet(
+                    spreadsheet_id=DAY_TEMPLATE,
+                    title=name.file_name,
+                    folder_id=year_folder_id,
+                )
             )
 
             spreadsheet_id = spreadsheet_copy.id
 
-        # create spreadsheet_object
-        spreadsheet: Spreadsheet = self.spreadsheet_file_manager.get_spreadsheet(
-            spreadsheet_id=spreadsheet_id
-        )
-
-        # check if worksheet not exist create it
-        worksheet: Worksheet | None = self.spreadsheet_file_manager.get_worksheet_by_title(
-            spreadsheet=spreadsheet, title=name.day
-        )
-
-        if not worksheet:
-            # copy sheet sample to spreadsheet
-            self.spreadsheet_file_manager.copy_sheet_to_spreadsheet(
-                spreadsheet_id=DAY_TEMPLATE,
-                sheet_id=0,
-                destination_spreadsheet_id=spreadsheet.id,
+            spreadsheet: Spreadsheet = self.spreadsheet_file_manager.get_spreadsheet(
+                spreadsheet_id=spreadsheet_id
             )
 
+            # rename copied worksheet tamale name
             worksheet = spreadsheet.worksheet(title=WORKSHEET_SAMPLE_NAME)
 
             worksheet.update_title(title=name.day)
 
-        # Check if SHEET worksheet sample exist, if exist delete
-        if self.spreadsheet_file_manager.get_worksheet_by_title(
-            spreadsheet=spreadsheet, title=WORKSHEET_SAMPLE_COPY_NAME
-        ):
-            self.spreadsheet_file_manager.delete_worksheet(
-                spreadsheet=spreadsheet, title=WORKSHEET_SAMPLE_COPY_NAME
+        # create spreadsheet_object
+        else:
+            spreadsheet: Spreadsheet = self.spreadsheet_file_manager.get_spreadsheet(
+                spreadsheet_id=spreadsheet_id
             )
+
+            # check if worksheet not exist create it
+            worksheet: Worksheet | None = (
+                self.spreadsheet_file_manager.get_worksheet_by_title(
+                    spreadsheet=spreadsheet, title=name.day
+                )
+            )
+
+            if not worksheet:
+                # copy sheet sample to spreadsheet
+                self.spreadsheet_file_manager.copy_sheet_to_spreadsheet(
+                    spreadsheet_id=DAY_TEMPLATE,
+                    sheet_id=0,
+                    destination_spreadsheet_id=spreadsheet.id,
+                )
+
+                # rename copied worksheet tamale name
+                worksheet = spreadsheet.worksheet(title=WORKSHEET_SAMPLE_COPY_NAME)
+
+                worksheet.update_title(title=name.day)
 
         # create worksheet manager
         worksheet_manager = WorksheetManager(worksheet=worksheet)
@@ -108,10 +118,8 @@ class ZettleWebhookHandler:
         # convert sheet to pandas DataFrame
         dataframe: ProductDataFrame = ProductDataFrame(sheet=worksheet_raw_data)
 
-        product_exist: bool = dataframe.product_exist(
-            product_name=product_data.name
-        )
-        
+        product_exist: bool = dataframe.product_exist(product_name=product_data.name)
+
         stock_in_or_out: dict[str, int] = check_stock_in_or_out(
             before=inventory_update.inventory.before,
             after=inventory_update.inventory.after,
@@ -135,7 +143,7 @@ class ZettleWebhookHandler:
                 increment_in: dict = dataframe.increment_stock_in(
                     product_name=product_data.name, amount=stock_in_or_out["stock_in"]
                 )
-                
+
                 # update_worksheet
                 worksheet_manager.update_stock_in(
                     value=increment_in["value"], row=increment_in["row"]
@@ -145,10 +153,8 @@ class ZettleWebhookHandler:
                 increment_out: dict = dataframe.increment_stock_out(
                     product_name=product_data.name, amount=stock_in_or_out["stock_out"]
                 )
-                
+
                 # update_worksheet
                 worksheet_manager.update_stock_out(
                     value=increment_out["value"], row=increment_out["row"]
                 )
-        
-        
