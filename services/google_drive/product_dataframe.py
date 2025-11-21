@@ -1,3 +1,4 @@
+from unittest import result
 from pandas import DataFrame  # type:ignore
 import logging
 
@@ -6,7 +7,7 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 
 class ProductDataFrame:
     def __init__(self, sheet) -> None:
-        logger.info(f"initializing paba Dataframe from raw data")
+        logger.info(f"initializing panda Dataframe from raw data")
         self.sheet_data: DataFrame = DataFrame.from_records(
             data=sheet[1:], columns=sheet[0], index="name"
         )
@@ -14,7 +15,8 @@ class ProductDataFrame:
     def product_exist(self, product_name: str) -> bool:
         logger.info(f"check if product '{product_name}' exist")
         try:
-            logger.info(f"check if product '{product_name}' exist")
+            result = self.get_product_row_index(product_name=product_name)
+            logger.info(f"product by name '{product_name} exist'")
             return True
         except KeyError:
             logger.info(f"product by name '{product_name}' doesn't exist !!!")

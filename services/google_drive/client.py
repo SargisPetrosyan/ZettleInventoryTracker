@@ -32,7 +32,6 @@ class GoogleDriveClient:
 
     def list(self, page_size: int, q: str, fields: str) -> dict[str, str]:
         """List files matching a query."""
-        logger.info(f"list files page_size:'{page_size}', fields ")
         results: Any = (
             self._client.files().list(q=q, pageSize=page_size, fields=fields).execute()
         )

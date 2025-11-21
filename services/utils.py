@@ -18,10 +18,10 @@ class FileName:
 def check_stock_in_or_out(before: int, after: int, change: int) -> dict[str, int]:
     logger.info("check if product update stock_in or stock out")
     if before > after:
-        logger.info(f" product is stock out '{before} > {after}'")
+        logger.info(f" product is 'stock_out' 'before: {before} > after: {after}'")
         return {"stock_in": 0, "stock_out": change, "before": before}
     else:
-        logger.info(f" product is in '{before} < {after}'")
+        logger.info(f" product is 'stock_in' 'before: {before} < after: {after}'")
         return {"stock_in": change, "stock_out": 0, "before": before}
 
 

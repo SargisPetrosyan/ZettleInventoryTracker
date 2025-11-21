@@ -16,4 +16,4 @@ handler = ZettleWebhookHandler()
 
 @app.post(path="/store_inventory_data_webhook")
 def store_inventory_data_webhook(request: InventoryBalanceChanged) -> None:
-    handler.process_webhook(request=request_body)
+    handler.process_webhook(request=request)

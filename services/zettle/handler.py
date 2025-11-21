@@ -58,7 +58,6 @@ class ZettleWebhookHandler:
             )
             logger.info(f"'year: {name.year}' folder was created!!")
 
-        logger.info(f"'year: {name.year}' folder was found")
 
         # Check if file exist, if not create it
         logger.info(f"check if file 'file_name: {name.file_name}' exist ")
@@ -117,7 +116,7 @@ class ZettleWebhookHandler:
                     sheet_id=0,
                     destination_spreadsheet_id=spreadsheet.id,
                 )
-                logger.info(f"copping worksheet form template")
+                logger.info(f"copying worksheet from template")
                 # rename copied worksheet tamale name
                 worksheet = spreadsheet.worksheet(title=WORKSHEET_SAMPLE_COPY_NAME)
                 logger.info(
@@ -176,7 +175,7 @@ class ZettleWebhookHandler:
                 )
 
                 # update_worksheet
-                logger.info("update stock in in worksheet")
+                logger.info("update stock out in worksheet")
                 worksheet_manager.update_stock_out(
                     value=increment_out["value"], row=increment_out["row"]
                 )
