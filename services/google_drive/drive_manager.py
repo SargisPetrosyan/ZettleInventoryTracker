@@ -29,7 +29,6 @@ class DriveFileManager:
 
         year_folder_id: str = year_folder["id"]
         # create nested month folder
-        self.client.create_folder(folder_name="months", parent_folder_id=year_folder_id)
 
         return year_folder_id
 

@@ -12,6 +12,7 @@ class FileName:
         self.day: str = str(object=date.day).zfill(2)
         self.month_name: str = str(object=date.strftime("%B"))
         self.file_name: str = f"{self.year}-{self.month}-{self.month_name}"
+        self.monthly_report_name: str = f"{self.year}-monthly report"
         logger.info(f"file name was created 'file_name: {self.file_name}'")
 
 
