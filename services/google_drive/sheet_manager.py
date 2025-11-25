@@ -1,4 +1,5 @@
 from gspread import utils
+import data
 from services.google_drive.client import SpreadSheetClient  # type:ignore
 from gspread.exceptions import WorksheetNotFound
 from gspread.worksheet import Worksheet
@@ -161,4 +162,38 @@ class DayWorksheetManager:
 
 
 class MounthlyWorksheetManager:
-    pass
+    def __init__(
+        self,
+        worksheet: Worksheet,
+        day:int
+    ) -> None:
+        self.worksheet: Worksheet = worksheet
+        self.day: int = day
+        self.stock_in_col: int = day
+        self.stock_out_col: int = day+2
+
+    def add_product(
+        self,
+        product_name: str,
+        category: str | None,
+        opening_stock: int,
+        stock_in: int,
+        stock_out: int,
+        last_row: int,
+    ) -> Any:
+        last_element: int = last_row + 1
+        new_row: Iterable[Iterable[Any]] = [
+            [product_name, category, opening_stock, str(self.stock_in_col), str(self.stock_out_col)]
+        ]
+        self.worksheet.update(
+            range_name=f"A{last_element}:AI{last_element}", values=new_row
+        )
+
+    def update_stock_in(self, value: int , row: int) -> Any:
+        self.worksheet.update_cell(row=row + 2, col=self.stock_in_col, value=value)
+
+    def update_stock_out(self, value: int , row: int) -> Any:
+        self.worksheet.update_cell(row=row + 3, col=self.stock_out_col, value=value)
+
+    def get_raw_data(self) -> list[list[str]]:
+        return self.worksheet.get(return_type=utils.GridRangeType.ListOfLists)
