@@ -4,6 +4,11 @@ from gspread.exceptions import WorksheetNotFound
 from gspread.worksheet import Worksheet
 from gspread.spreadsheet import Spreadsheet
 import logging
+from services.utils import FileName
+from const import (
+    WORKSHEET_SAMPLE_NAME,
+    WORKSHEET_SAMPLE_COPY_NAME
+)
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -23,10 +28,10 @@ class SpreadSheetFileManager:
         )
 
     def copy_sheet_to_spreadsheet(
-        self, spreadsheet_id: str, sheet_id: int, destination_spreadsheet_id: str
+        self, tamplate_id: str, sheet_id: int, destination_spreadsheet_id: str
     ) -> Any:
         self.client.spreadsheets_sheets_copy_to(
-            id=spreadsheet_id,
+            id=tamplate_id,
             sheet_id=sheet_id,
             destination_spreadsheet_id=destination_spreadsheet_id,
         )
@@ -57,8 +62,65 @@ class SpreadSheetFileManager:
         worksheet: Worksheet = spreadsheet.worksheet(title=f"{title}")
         spreadsheet.del_worksheet(worksheet)
 
+    def create_worksheet(
+            self,
+            worksheet_name: str,
+            tamplates_spreadsheet_id:str,
+            spreadsheet:Spreadsheet
+            ) -> Worksheet:
+        # copy sheet sample to spreadsheet
+        self.copy_sheet_to_spreadsheet(
+            tamplate_id=tamplates_spreadsheet_id,
+            sheet_id=0,
+            destination_spreadsheet_id=spreadsheet.id
+        )
+        logger.info(f"copying worksheet from template")
+        # rename copied worksheet tamale name
+        worksheet: Worksheet = spreadsheet.worksheet(title=WORKSHEET_SAMPLE_COPY_NAME)
+        logger.info(
+            f"renaming worksheet form '{WORKSHEET_SAMPLE_COPY_NAME} to {worksheet_name}'"
+        )
 
-class WorksheetManager:
+        worksheet.update_title(title=worksheet_name)
+
+        return worksheet
+    def create_spreadsheet(
+            self,
+            file_name:str,
+            spreadsheet_tamplate_id:str,
+            worksheet_name:str,
+            year_folder_id: str
+            ) -> Spreadsheet:
+        
+        spreadsheet_copy: Spreadsheet = (
+            self.copy_spreadsheet(
+                spreadsheet_id=spreadsheet_tamplate_id,
+                title=file_name,
+                folder_id=year_folder_id
+            )
+        )
+        logger.info(f"file 'file_name: {file_name}' was not found")
+        logger.info(f"creating new file 'file_name: {file_name}'")
+        spreadsheet_id = spreadsheet_copy.id
+
+        spreadsheet: Spreadsheet = self.get_spreadsheet(
+            spreadsheet_id=spreadsheet_id
+        )
+
+        logger.info(
+            f"rename template names from 'WORKSHEET_SAMPLE_NAME to {worksheet_name}'"
+        )
+        # rename copied worksheet tamale name
+        worksheet = spreadsheet.worksheet(title=WORKSHEET_SAMPLE_NAME)
+
+        worksheet.update_title(title=worksheet_name)
+        logger.info(
+            f"renaming template names from 'WORKSHEET_SAMPLE_NAME to {worksheet_name}' was successfully done!!!"
+        )
+        return spreadsheet
+
+
+class DayWorksheetManager:
     def __init__(
         self,
         worksheet: Worksheet,
@@ -96,3 +158,7 @@ class WorksheetManager:
 
     def get_raw_data(self) -> list[list[str]]:
         return self.worksheet.get(return_type=utils.GridRangeType.ListOfLists)
+
+
+class MounthlyWorksheetManager:
+    pass

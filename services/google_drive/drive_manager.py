@@ -52,7 +52,7 @@ class DriveFileManager:
             raise ValueError(f"{folder_name} has duplicate")
         return files[0]["id"]
 
-    def spreadsheet_exist_by_name(
+    def get_spreadsheet_by_name(
         self, spreadsheet_name: str, parent_folder_id: str, page_size: int
     ) -> str | None:
         files_list: dict = self.client.list(
