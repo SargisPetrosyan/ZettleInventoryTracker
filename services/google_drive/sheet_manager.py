@@ -1,11 +1,9 @@
 from gspread import utils
-import data
 from services.google_drive.client import SpreadSheetClient  # type:ignore
 from gspread.exceptions import WorksheetNotFound
 from gspread.worksheet import Worksheet
 from gspread.spreadsheet import Spreadsheet
 import logging
-from services.utils import FileName
 from const import (
     WORKSHEET_SAMPLE_NAME,
     WORKSHEET_SAMPLE_COPY_NAME
@@ -145,17 +143,17 @@ class DayWorksheetManager:
     ) -> Any:
         last_element: int = last_row + 1
         new_row: Iterable[Iterable[Any]] = [
-            [product_name, category, opening_stock, stock_in, stock_out]
+            [product_name, category, opening_stock, stock_in,  -abs(stock_out)]
         ]
         self.worksheet.update(
             range_name=f"A{last_element}:F{last_element}", values=new_row
         )
 
     def update_stock_in(self, value: int | float | str, row: int) -> Any:
-        self.worksheet.update_cell(row=row + 2, col=self.stock_in_col, value=value)
+        self.worksheet.update_cell(row=row + 2, col=self.stock_in_col, value= -abs(value))#type:ignore
 
     def update_stock_out(self, value: int | float | str, row: int) -> Any:
-        self.worksheet.update_cell(row=row + 2, col=self.stock_out_col, value=value)
+        self.worksheet.update_cell(row=row + 2, col=self.stock_out_col, value= -abs(value)) #type:ignore
 
     def get_raw_data(self) -> list[list[str]]:
         return self.worksheet.get(return_type=utils.GridRangeType.ListOfLists)
@@ -169,31 +167,43 @@ class MounthlyWorksheetManager:
     ) -> None:
         self.worksheet: Worksheet = worksheet
         self.day: int = day
-        self.stock_in_col: int = day
-        self.stock_out_col: int = day+2
 
-    def add_product(
+        # first 3 row product name, category etc.
+        self.stock_in_col: int = day + 4 
+        self.stock_out_col: int = day + 4
+
+    def add_new_product(
         self,
         product_name: str,
         category: str | None,
-        opening_stock: int,
+        last_mounth_stock: int,
         stock_in: int,
         stock_out: int,
         last_row: int,
     ) -> Any:
-        last_element: int = last_row + 1
+        last_element_row: int = last_row
         new_row: Iterable[Iterable[Any]] = [
-            [product_name, category, opening_stock, str(self.stock_in_col), str(self.stock_out_col)]
+            [product_name, category, last_mounth_stock,]
         ]
+
+        # bunch update last element row + 1
         self.worksheet.update(
-            range_name=f"A{last_element}:AI{last_element}", values=new_row
+            range_name=f"A{last_element_row + 1}:C{last_element_row + 1}", values=new_row
         )
 
+        if stock_in:
+            self.update_stock_in(row=last_element_row, value=stock_in)
+        elif stock_out:
+            self.update_stock_out(row=last_element_row, value= -abs(stock_out))
+
+
     def update_stock_in(self, value: int , row: int) -> Any:
-        self.worksheet.update_cell(row=row + 2, col=self.stock_in_col, value=value)
+        # in dataframe object col and row different to get correct row need to + 2
+        self.worksheet.update_cell(row=row + 1, col=self.stock_in_col, value=value)
 
     def update_stock_out(self, value: int , row: int) -> Any:
-        self.worksheet.update_cell(row=row + 3, col=self.stock_out_col, value=value)
+        # in dataframe object col and row different to get correct row need to + 2
+        self.worksheet.update_cell(row=row + 2, col=self.stock_out_col, value=value)
 
     def get_raw_data(self) -> list[list[str]]:
         return self.worksheet.get(return_type=utils.GridRangeType.ListOfLists)
