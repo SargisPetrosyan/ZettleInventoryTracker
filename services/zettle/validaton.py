@@ -41,27 +41,9 @@ class InventoryBalanceChanged(BaseModel):
 
 class ProductData(BaseModel):
     uuid: str
-    category: str | None
+    category: str
     categories: list
     name: str
     variants: list[Variants]
     updated: str
     created: str
-
-
-# def validate_inventory_update(response) -> InventoryBalanceChanged:
-#     response_loads: dict = json.loads(response)
-#     try:
-#         validated = InventoryBalanceChanged(**response_loads)
-#         return validated
-#     except ValidationError:
-#         raise ValidationError("your model doesn't have valid data")
-
-
-# def validate_product_data(response) -> ProductData:
-#     response_loads: dict = json.loads(response)
-#     try:
-#         validated = ProductData(**response_loads)
-#         return validated
-#     except ValidationError:
-#         raise ValidationError("your model doesn't have valid data")
