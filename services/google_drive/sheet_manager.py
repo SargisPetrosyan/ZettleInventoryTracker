@@ -186,50 +186,46 @@ class DayWorksheetManager:
 
 
 class MounthlyWorksheetManager:
-    def __init__(self, worksheet: Worksheet, day: int) -> None:
+    def __init__(self, worksheet: Worksheet) -> None:
         self.worksheet: Worksheet = worksheet
-        self.day: int = day
-
-        # first 3 row product name, category etc.
-        self.stock_in_col: int = day + 4
-        self.stock_out_col: int = day + 4
+        # self.day: int = day
 
     def add_new_product(
         self,
         product_name: str,
         category: str | None,
-        last_mounth_stock: int,
         stock_in: int,
         stock_out: int,
-        last_row: int,
+        day:int,
+        first:bool
+
     ) -> Any:
-        last_element_row: int = last_row
-        new_row: Iterable[Iterable[Any]] = [
-            [
-                product_name,
-                category,
-                last_mounth_stock,
-            ]
-        ]
 
-        # bunch update last element row + 1
-        self.worksheet.update(
-            range_name=f"A{last_element_row + 1}:C{last_element_row + 1}",
-            values=new_row,
-        )
+        if first:
+            self.worksheet.batch_update([{
+                'range': 'A2:A3',
+                'values': [[product_name]],
+            },{
+                'range': 'B2:B3',
+                'values': [[category]],
+            }])
+        else:
+            self.worksheet.append_row([product_name,category])
 
+        stock_in_out_cell_index = day +4
         if stock_in:
-            self.update_stock_in(row=last_element_row, value=stock_in)
+            self.update_stock_in(row=2, stock_in_col=stock_in_out_cell_index, value=stock_in)
         elif stock_out:
-            self.update_stock_out(row=last_element_row, value=-abs(stock_out))
+            self.update_stock_out(row=2, stock_out_col=stock_in_out_cell_index, value=-abs(stock_out))
 
-    def update_stock_in(self, value: int, row: int) -> Any:
+
+    def update_stock_in(self,stock_in_col:int, value: int, row: int) -> Any:
         # in dataframe object col and row different to get correct row need to + 2
-        self.worksheet.update_cell(row=row + 1, col=self.stock_in_col, value=value)
+        self.worksheet.update_cell(row=row , col=stock_in_col, value=value)
 
-    def update_stock_out(self, value: int, row: int) -> Any:
+    def update_stock_out(self,stock_out_col, value: int, row: int) -> Any:
         # in dataframe object col and row different to get correct row need to + 2
-        self.worksheet.update_cell(row=row + 2, col=self.stock_out_col, value=value)
+        self.worksheet.update_cell(row=row + 1, col=stock_out_col, value=value)
 
-    def get_raw_data(self) -> list[list[str]]:
-        return self.worksheet.get(return_type=utils.GridRangeType.ListOfLists)
+    
+
