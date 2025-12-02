@@ -8,12 +8,15 @@ class FileName:
     def __init__(self, date: datetime) -> None:
         logger.info(f"initializing file name")
         self.year: str = str(object=date.year)
+        self.year_folder_name: str = str(object=date.year)
+        self.month_worksheet_name: str = self.day_file_name
         self.month: str = str(object=date.month).zfill(2)
         self.day: str = str(object=date.day).zfill(2)
-        self.month_name: str = str(object=date.strftime("%B"))
-        self.file_name: str = f"{self.year}-{self.month}-{self.month_name}"
+        self.day_worksheet_name: str = self.day
+        self.month_file_name: str = str(object=date.strftime("%B"))
+        self.day_file_name: str = f"{self.year}-{self.month}-{self.month_file_name}"
         self.monthly_report_name: str = f"{self.year}-monthly report"
-        logger.info(f"file name was created 'file_name: {self.file_name}'")
+        logger.info(f"file name was created 'file_name: {self.day_file_name}'")
 
 
 def check_stock_in_or_out(before: int, after: int, change: int) -> dict[str, int]:
@@ -31,3 +34,10 @@ def sheet_exist(items: dict[str, int], sheet_name: str) -> int | None:
         if sheet == sheet_name:
             return index
     return None
+
+
+def get_row_from_response(response: dict) -> int:
+    product_update_data: str = response["updates"]["updatedRange"]
+    product_row_position: str = product_update_data.split("!")[-1]
+    product_row_number: str = product_row_position.split(":")[0][1:]
+    return int(product_row_number)

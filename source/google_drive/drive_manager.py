@@ -1,4 +1,4 @@
-from services.google_drive.client import GoogleDriveClient
+from source.google_drive.client import GoogleDriveClient
 import os
 from dotenv import load_dotenv
 import logging

@@ -1,6 +1,6 @@
-from tkinter import NO
-from gspread import Cell, utils
-from services.google_drive.client import SpreadSheetClient  # type:ignore
+from token import RPAR
+from gspread import Cell, ValueRange
+from source.google_drive.client import SpreadSheetClient  # type:ignore
 from gspread.exceptions import WorksheetNotFound
 from gspread.worksheet import Worksheet
 from gspread.spreadsheet import Spreadsheet
@@ -15,8 +15,10 @@ from const import (
     PRODUCT_STOCK_OUT_INDEX,
     PRODUCT_CLOSING_STOCK_INDEX,
 )
+from utils import get_row_from_response
 
-from typing import Any, Iterable
+import rich
+from typing import Any, Iterable, List
 import logging
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -35,10 +37,10 @@ class SpreadSheetFileManager:
         )
 
     def copy_sheet_to_spreadsheet(
-        self, tamplate_id: str, sheet_id: int, destination_spreadsheet_id: str
+        self, template_id: str, sheet_id: int, destination_spreadsheet_id: str
     ) -> Any:
         self.client.spreadsheets_sheets_copy_to(
-            id=tamplate_id,
+            id=template_id,
             sheet_id=sheet_id,
             destination_spreadsheet_id=destination_spreadsheet_id,
         )
@@ -77,7 +79,7 @@ class SpreadSheetFileManager:
     ) -> Worksheet:
         # copy sheet sample to spreadsheet
         self.copy_sheet_to_spreadsheet(
-            tamplate_id=templates_spreadsheet_id,
+            template_id=templates_spreadsheet_id,
             sheet_id=0,
             destination_spreadsheet_id=spreadsheet.id,
         )
@@ -148,47 +150,54 @@ class DayWorksheetManager:
 
         self.worksheet.append_row(values=new_row)
 
-    def update_stock_in(
-        self, product_data: list[str], amount: int, product_positional_data: Cell
-    ) -> None:
+    def update_stock_in(self, product_data: list[str], amount: int, row: int) -> None:
+        logger.info(f"update monthly report stock_out by value'{amount}'")
         old_value: int = int(product_data[PRODUCT_STOCK_IN_INDEX])
         increment_values: int = old_value + amount
         self.worksheet.update_cell(
-            row=product_positional_data.row,
+            row=row,
             # python list index starting from 0, drive sheet index from 1
-            col= PRODUCT_STOCK_IN_INDEX + 1,
+            col=PRODUCT_STOCK_IN_INDEX + 1,
             value=increment_values,
         )  # type:ignore
 
-    def update_stock_out(
-        self, product_data: list[str], amount: int, product_positional_data: Cell
-    ) -> None:
+    def update_stock_out(self, product_data: list[str], amount: int, row: int) -> None:
+        logger.info(f"update monthly report stock_out by value'{amount}'")
         old_value: int = int(product_data[PRODUCT_STOCK_OUT_INDEX])
         increment_values: int = old_value + amount
         self.worksheet.update_cell(
-            row=product_positional_data.row,
+            row=row,
             # python list index starting from 0, drive sheet index from 1
             col=PRODUCT_STOCK_OUT_INDEX + 1,
             value=-abs(increment_values),
         )  # type:ignore
 
-    def product_position(self, name) -> Cell | None:
+    def product_position(self, name: str) -> Cell:
         product: Cell | None = self.worksheet.find(name, in_column=1)
 
         if not product:
-            logger.info(f"product by name 'product_name: {name}' doesn't exist adding new")
-            return None
+            raise ValueError(f"product by name {name} was deleted")
 
         return product
+
+    def product_exist(self, product_name: str) -> bool:
+        product: Cell | None = self.worksheet.find(query=product_name, in_column=1)
+
+        if product:
+            return True
+        else:
+            return False
 
     def get_product_row_data(self, row: int) -> list[str]:
         return self.worksheet.row_values(row=row)
 
 
-class MounthlyWorksheetManager:
-    def __init__(self, worksheet: Worksheet) -> None:
+class MonthlyWorksheetProductManager:
+    def __init__(self, worksheet: Worksheet, day: str) -> None:
         self.worksheet: Worksheet = worksheet
-        # self.day: int = day
+
+        # first 4 col are 'product_name', 'category', 'variant' etc.
+        self.col_index: int = int(day) + 4
 
     def add_new_product(
         self,
@@ -196,36 +205,62 @@ class MounthlyWorksheetManager:
         category: str | None,
         stock_in: int,
         stock_out: int,
-        day:int,
-        first:bool
-
     ) -> Any:
+        # check if its first element that would be appended
+        first_element: ValueRange | List[List[str]] = self.worksheet.get("A2:A3")
+        if not first_element[0]:
+            response = self.worksheet.batch_update(
+                [
+                    {
+                        "range": "A2:A3",
+                        "values": [[product_name]],
+                    },
+                    {
+                        "range": "B2:B3",
+                        "values": [[category]],
+                    },
+                ]
+            )
 
-        if first:
-            self.worksheet.batch_update([{
-                'range': 'A2:A3',
-                'values': [[product_name]],
-            },{
-                'range': 'B2:B3',
-                'values': [[category]],
-            }])
         else:
-            self.worksheet.append_row([product_name,category])
+            response = self.worksheet.append_row(
+                values=[
+                    product_name,
+                    category,
+                ]
+            )  # type: ignore
 
-        stock_in_out_cell_index = day +4
+        row: int = get_row_from_response(response=response)  # type: ignore
+
         if stock_in:
-            self.update_stock_in(row=2, stock_in_col=stock_in_out_cell_index, value=stock_in)
+            self.update_stock_in(row=row, amount=stock_in)
         elif stock_out:
-            self.update_stock_out(row=2, stock_out_col=stock_in_out_cell_index, value=-abs(stock_out))
+            self.update_stock_out(row=row, amount=-abs(stock_out))
 
+    def update_stock_in(self, amount: int, row: int) -> Any:
+        logger.info(f"update stock_in by value '{amount}'")
+        self.worksheet.update_cell(row=row, col=self.col_index, value=amount)
 
-    def update_stock_in(self,stock_in_col:int, value: int, row: int) -> Any:
-        # in dataframe object col and row different to get correct row need to + 2
-        self.worksheet.update_cell(row=row , col=stock_in_col, value=value)
+    def update_stock_out(self, amount: int, row: int) -> Any:
+        # + 1 because stock_out in next row
+        logger.info(f"update stock_out by value '{amount}'")
+        self.worksheet.update_cell(row=row + 1, col=self.col_index, value=amount)
 
-    def update_stock_out(self,stock_out_col, value: int, row: int) -> Any:
-        # in dataframe object col and row different to get correct row need to + 2
-        self.worksheet.update_cell(row=row + 1, col=stock_out_col, value=value)
+    def product_position(self, name: str) -> Cell:
+        product: Cell | None = self.worksheet.find(name, in_column=1)
 
-    
+        if not product:
+            raise ValueError(f"product by name {name} was deleted")
 
+        return product
+
+    def product_exist(self, product_name: str) -> bool:
+        product: Cell | None = self.worksheet.find(query=product_name, in_column=1)
+
+        if product:
+            return True
+        else:
+            return False
+
+    def get_product_row_data(self, row: int) -> list[str]:
+        return self.worksheet.row_values(row=row)
