@@ -22,10 +22,21 @@ ID_DALA_SHOP: str = "DALA_ID"
 ID_ART_CRAFT: str = "ART_ID"
 ID_DALA_CAFFE: str = "CAFE_ID"
 
-# day worksheet colums indexes
-PRODUCT_NAME_INDEX: int = 0
-PRODUCT_CATEGORY_INDEX: int = 1
-PRODUCT_OPENING_STOCK_INDEX: int = 2
-PRODUCT_STOCK_IN_INDEX: int = 3
-PRODUCT_STOCK_OUT_INDEX: int = 4
-PRODUCT_CLOSING_STOCK_INDEX: int = 5
+# day worksheet columns index
+PRODUCT_NAME_COL_INDEX: int = 1
+PRODUCT_CATEGORY_COL_INDEX: int = 2
+PRODUCT_OPENING_STOCK_COL_INDEX: int = 3
+PRODUCT_STOCK_IN_COL_INDEX: int = 4
+PRODUCT_STOCK_OUT_COL_INDEX: int = 5
+PRODUCT_CLOSING_STOCK_COL_INDEX: int = 6
+
+# shop id mapped to folder id
+SHOP_ID: dict[str, str] = {
+    "dala_id": DALASHOP_FOLDER_ID,
+    "art_id": ART_CRAFT_FOLDER_ID,
+    "caffe_id": DALA_CAFFE_FOLDER_ID,
+}
+
+# month worksheet
+MONTH_WORKSHEET_FIRST_CELL: str = "A2:A3"  # merged cells
+MONTH_PRODUCT_DATA_CELL_RANGE: str = "A2:C2"

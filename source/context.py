@@ -24,13 +24,6 @@ class Context:
         self.year_folder_id: str = ""
         self.day_spreadsheet_id: str = ""
         self.month_spreadsheet_id: str = ""
-
-        self.shop_unique_id: dict[str, str] = {
-            "dala_id": DALASHOP_FOLDER_ID,
-            "art_id": ART_CRAFT_FOLDER_ID,
-            "caffe_id": DALA_CAFFE_FOLDER_ID,
-        }
-
         self.name = FileName(date=date)
         self.product_update: InventoryBalanceChanged = inventory_balance_update
         self.product_data: ProductData = product_data

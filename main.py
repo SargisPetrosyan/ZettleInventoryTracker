@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI
 from pandas import date_range
 from source.services import ManagerCreator
@@ -19,10 +18,19 @@ handler = ZettleWebhookHandler(
 
 app = FastAPI()
 
+
 @app.post(path="/store_inventory_data_webhook")
 def store_inventory_data_webhook(request: InventoryBalanceChanged) -> None:
     handler.process_webhook(request=request)
 
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run('main:app', host="0.0.0.0", port=8000, log_level="debug", reload=True,)
+
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        log_level="debug",
+        reload=True,
+    )

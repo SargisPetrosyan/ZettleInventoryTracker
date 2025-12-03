@@ -1,5 +1,6 @@
 from datetime import datetime
 import logging
+from gspread.worksheet import JSONResponse
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -36,8 +37,12 @@ def sheet_exist(items: dict[str, int], sheet_name: str) -> int | None:
     return None
 
 
-def get_row_from_response(response: dict) -> int:
+def get_row_from_response(response: JSONResponse) -> int:
     product_update_data: str = response["updates"]["updatedRange"]
     product_row_position: str = product_update_data.split("!")[-1]
-    product_row_number: str = product_row_position.split(":")[0][1:]
-    return int(product_row_number)
+    if ":" in product_row_position:
+        product_row_number: str = product_row_position.split(":")[0][1:]
+        return int(product_row_number)
+    else:
+        product_row_number: str = product_row_position[0][1:]
+        return int(product_row_number)

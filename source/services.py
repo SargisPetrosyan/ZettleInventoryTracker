@@ -1,4 +1,8 @@
+from abc import ABC, abstractmethod
+from tkinter import N
 from gspread import Cell, Spreadsheet, Worksheet
+from pyparsing import col
+from source.abstract_classes import WorksheetProductReader
 from source.context import Context
 from source.google_drive.drive_manager import DriveFileManager
 from source.google_drive.client import SpreadSheetClient, GoogleDriveClient
@@ -7,20 +11,24 @@ from const import (
     WORKSHEET_SAMPLE_NAME,
     MONTHLY_TEMPLATE_ID,
     DALASHOP_FOLDER_ID,
+    SHOP_ID,
 )
 import logging
 
-from source.google_drive.sheet_manager import (
-    DayWorksheetManager,
-    MonthlyWorksheetProductManager,
-    SpreadSheetFileManager,
+from source.google_drive.product_managers import (
+    DayWorksheetProductReader,
+    DayWorksheetProductWriter,
+    MonthWorksheetProductReader,
+    MonthWorksheetProductWriter,
 )
+
+from source.google_drive.sheet_manager import SpreadSheetFileManager
 from source.zettle.validaton import InventoryBalanceChanged
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
 
-class YearFolderManger:
+class YearFolderExistenceEnsurer:
     def __init__(
         self,
         drive_file_manager: DriveFileManager,
@@ -29,10 +37,10 @@ class YearFolderManger:
         self.drive_file_manager: DriveFileManager = drive_file_manager
         self.spreadsheet_file_manager: SpreadSheetFileManager = spreadsheet_file_manege
 
-    def ensure_year_folder(self,context: Context) -> None:
+    def ensure_year_folder(self, context: Context) -> None:
         logger.info(f"check if 'year: {context.name.year}' folder exist")
-        parent_folder_id: str | None =context.shop_unique_id[context.product_update.organizationUuid]
-        
+        parent_folder_id: str | None = SHOP_ID[context.product_update.organizationUuid]
+
         year_folder_id: str | None = self.drive_file_manager.folder_exist_by_name(
             folder_name=context.name.year_folder_name,
             parent_folder_id=parent_folder_id,
@@ -87,7 +95,7 @@ class YearFolderManger:
         context.year_folder_id = year_folder_id
 
 
-class DaySpreadsheetFileManager:
+class DaySpreadsheetExistenceEnsurer:
     def __init__(
         self,
         drive_file_manager: DriveFileManager,
@@ -98,7 +106,7 @@ class DaySpreadsheetFileManager:
 
     def ensure_day_spreadsheet(self, context: Context) -> Spreadsheet:
         if not context.year_folder_id:
-            raise ValueError("year folder id not exist check it")
+            raise ValueError("year folder id not exist")
 
         spreadsheet_id: str | None = self.drive_file_manager.get_spreadsheet_by_name(
             spreadsheet_name=context.name.day_file_name,
@@ -131,7 +139,7 @@ class DaySpreadsheetFileManager:
         return spreadsheet
 
 
-class MonthSpreadsheetFileManager:
+class MonthSpreadsheetExistenceEnsurer:
     def __init__(
         self,
         drive_file_manager: DriveFileManager,
@@ -169,22 +177,22 @@ class MonthSpreadsheetFileManager:
         return spreadsheet
 
 
-class WorksheetManager:
+class WorksheetExistenceEnsurer:
     def __init__(self, spreadsheet_file_manager: SpreadSheetFileManager) -> None:
         self.spreadsheet_file_manager: SpreadSheetFileManager = spreadsheet_file_manager
 
     def ensure_worksheet(
         self, name: str, spreadsheet: Spreadsheet, template_spreadsheet_id: str
     ) -> Worksheet:
-        logger.info(f"check worksheet by name 'worksheet: {name}' exist")
-        # check worksheet
+        logger.info(msg=f"check worksheet by name 'worksheet: {name}' exist")
+
         worksheet: Worksheet | None = (
             self.spreadsheet_file_manager.get_worksheet_by_title(
                 spreadsheet=spreadsheet, title=name
             )
         )
         if not worksheet:
-            logger.info(f"worksheet by name 'worksheet: {name}' not exist!!!")
+            logger.info(msg=f"worksheet by name 'worksheet: {name}' not exist!!!")
             # copy sheet sample to spreadsheet
             worksheet = self.spreadsheet_file_manager.create_worksheet(
                 worksheet_name=name,
@@ -195,134 +203,100 @@ class WorksheetManager:
         return worksheet
 
 
-class ProductManager:
+class DayProductExistenceEnsurer:
     def __init__(
-        self, day_worksheet: Worksheet, context: Context, month_worksheet: Worksheet
+        self,
+        day_worksheet: Worksheet,
     ) -> None:
-        self.day_worksheet_manager = DayWorksheetManager(worksheet=day_worksheet)
-        self.month_worksheet_manager = MonthlyWorksheetProductManager(
-            worksheet=month_worksheet, day=context.name.day
-        )
+        self.day_worksheet_reader = DayWorksheetProductReader(worksheet=day_worksheet)
+        self.day_worksheet_writer = DayWorksheetProductWriter(worksheet=day_worksheet)
 
-    def ensure_and_update_product(self, context: Context) -> None:
-        product_exist: bool = self.day_worksheet_manager.product_exist(
+    def ensure_day_product(self, context: Context) -> None:
+        product_exist: int | None = self.day_worksheet_reader.get_product_row_position(
             product_name=context.product_data.name
         )
+        if not product_exist:
+            logger.info(
+                msg=f"product by name '{context.product_data.name}' doesn't exist creating new"
+            )
+            self.day_worksheet_writer.add_new_product(context=context)
+            return None
 
+
+class MonthProductExistenceEnsurer:
+    def __init__(self, month_worksheet: Worksheet) -> None:
+        self.month_worksheet_reader: MonthWorksheetProductReader = (
+            MonthWorksheetProductReader(worksheet=month_worksheet)
+        )
+        self.month_worksheet_writer = MonthWorksheetProductWriter(
+            worksheet=month_worksheet
+        )
+
+    def ensure_month_product(self, context: Context) -> int | None:
+        product_exist: int | None = (
+            self.month_worksheet_reader.get_product_row_position(
+                product_name=context.product_data.name
+            )
+        )
         if not product_exist:
             logger.info(
                 f"product by name '{context.product_data.name}' doesn't exist creating new"
             )
-            self.day_worksheet_manager.add_new_product(
-                product_name=context.product_data.name,
-                category=context.product_data.category,
-                opening_stock=context.product_update.inventory.before,
-                stock_in=context.stock_in_out.stock_in,
-                stock_out=context.stock_in_out.stock_out,
-            )
-
-            self.month_worksheet_manager.add_new_product(
-                product_name=context.product_data.name,
-                category=context.product_data.category,
-                stock_in=context.stock_in_out.stock_in,
-                stock_out=context.stock_in_out.stock_out,
-            )
-            return 
-        
-        logger.info(f"product by name '{context.product_data.name}' was found ")
-
-        day_worksheet_product_position: Cell = self.day_worksheet_manager.product_position(
-            name=context.product_data.name
-        )
-        day_worksheet_product_row: list[str] = (
-            self.day_worksheet_manager.get_product_row_data(
-                row=day_worksheet_product_position.row
-            )
-        )
-
-        month_worksheet_product_position: Cell = (
-            self.month_worksheet_manager.product_position(name=context.product_data.name)
-        )
-        monthly_worksheet_product_row: int = month_worksheet_product_position.row
-
-        if context.stock_in_out.stock_in:
-            logger.info("update stock in in worksheets")
-
-            self.day_worksheet_manager.update_stock_in(
-                product_data=day_worksheet_product_row,
-                amount=context.stock_in_out.stock_in,
-                row=day_worksheet_product_position.row,
-            )
-
-            self.month_worksheet_manager.update_stock_in(
-                amount=context.stock_in_out.stock_in, row=monthly_worksheet_product_row
-            )
-        elif context.stock_in_out.stock_out:
-            logger.info("update stock out in worksheets")
-
-            self.day_worksheet_manager.update_stock_out(
-                product_data=day_worksheet_product_row,
-                amount=context.stock_in_out.stock_out,
-                row=day_worksheet_product_position.row,
-            )
-
-            self.month_worksheet_manager.update_stock_out(
-                amount=context.stock_in_out.stock_out, row=monthly_worksheet_product_row
-            )
+            self.month_worksheet_writer.add_new_product(context=context)
+            return
 
 
-class ProductDataUpdater:
-    def update_product_data(
-        self,
-        day_worksheet_manager: DayWorksheetManager,
-        month_worksheet_manager: MonthlyWorksheetProductManager,
+class DayWorksheetUpdater:
+    @staticmethod
+    def update_day_worksheet(
         context: Context,
+        day_worksheet_writer: DayWorksheetProductWriter,
+        day_worksheet_reader: DayWorksheetProductReader,
     ):
         logger.info(f"product by name '{context.product_data.name}' was found ")
 
-        day_worksheet_product_position: Cell = day_worksheet_manager.product_position(
-            name=context.product_data.name
-        )
-        day_worksheet_product_row: list[str] = (
-            day_worksheet_manager.get_product_row_data(
-                row=day_worksheet_product_position.row
+        if context.stock_in_out.stock_in:
+            logger.info("update stock in in worksheets")
+            old_stock_in: int = day_worksheet_reader.get_product_stock_in(
+                product_row=day_worksheet_writer.row
             )
-        )
+            day_worksheet_writer.update_stock_in(
+                old_stock_in=old_stock_in, amount=context.stock_in_out.stock_in
+            )
 
-        month_worksheet_product_position: Cell = (
-            month_worksheet_manager.product_position(name=context.product_data.name)
-        )
-        monthly_worksheet_product_row: int = month_worksheet_product_position.row
+        elif context.stock_in_out.stock_out:
+            logger.info("update stock in in worksheets")
+            old_stock_out: int = day_worksheet_reader.get_product_stock_out(
+                product_row=day_worksheet_writer.row
+            )
+            day_worksheet_writer.update_stock_out(
+                old_stock_out=old_stock_out, amount=context.stock_in_out.stock_out
+            )
+
+
+class MonthWorksheetUpdater:
+    @staticmethod
+    def update_month_worksheet(
+        context: Context,
+        month_worksheet_writer: MonthWorksheetProductWriter,
+        month_worksheet_reader: MonthWorksheetProductReader,
+    ):
+        logger.info(f"product by name '{context.product_data.name}' was found ")
 
         if context.stock_in_out.stock_in:
             logger.info("update stock in in worksheets")
-
-            day_worksheet_manager.update_stock_in(
-                product_data=day_worksheet_product_row,
-                amount=context.stock_in_out.stock_in,
-                row=day_worksheet_product_position.row,
+            old_stock_in: int = month_worksheet_reader.get_product_stock_in(
+                product_row=month_worksheet_writer.row
+            )
+            month_worksheet_writer.update_stock_in(
+                old_stock_in=old_stock_in, amount=context.stock_in_out.stock_in
             )
 
-            month_worksheet_manager.update_stock_in(
-                amount=context.stock_in_out.stock_in, row=monthly_worksheet_product_row
-            )
         elif context.stock_in_out.stock_out:
-            logger.info("update stock out in worksheets")
-
-            day_worksheet_manager.update_stock_out(
-                product_data=day_worksheet_product_row,
-                amount=context.stock_in_out.stock_out,
-                row=day_worksheet_product_position.row,
+            logger.info("update stock in in worksheets")
+            old_stock_out: int = month_worksheet_reader.get_product_stock_out(
+                product_row=month_worksheet_writer.row
             )
-
-            month_worksheet_manager.update_stock_out(
-                amount=context.stock_in_out.stock_out, row=monthly_worksheet_product_row
+            month_worksheet_writer.update_stock_out(
+                old_stock_out=old_stock_out, amount=context.stock_in_out.stock_out
             )
-
-
-class ManagerCreator:
-    def __init__(self) -> None:
-        _spreadsheet_client = SpreadSheetClient()
-        _drive_file_client = GoogleDriveClient()
-        self.spreadsheet_manager = SpreadSheetFileManager(client=_spreadsheet_client)
-        self.google_drive_manager = DriveFileManager(client=_drive_file_client)
