@@ -8,16 +8,14 @@ import logging
 from const import (
     WORKSHEET_SAMPLE_COPY_NAME,
     WORKSHEET_SAMPLE_NAME,
-    PRODUCT_NAME_INDEX,
-    PRODUCT_CATEGORY_INDEX,
-    PRODUCT_OPENING_STOCK_INDEX,
     PRODUCT_STOCK_IN_INDEX,
     PRODUCT_STOCK_OUT_INDEX,
-    PRODUCT_CLOSING_STOCK_INDEX,
-)
-from utils import get_row_from_response
+    PRODUCT_STOCK_IN_INDEX
 
-import rich
+)
+from source.utils import get_row_from_response
+
+
 from typing import Any, Iterable, List
 import logging
 
@@ -151,9 +149,10 @@ class DayWorksheetManager:
         self.worksheet.append_row(values=new_row)
 
     def update_stock_in(self, product_data: list[str], amount: int, row: int) -> None:
-        logger.info(f"update monthly report stock_out by value'{amount}'")
         old_value: int = int(product_data[PRODUCT_STOCK_IN_INDEX])
+        print(old_value)
         increment_values: int = old_value + amount
+        logger.info(f"update day report stock_out by value'{increment_values}'")
         self.worksheet.update_cell(
             row=row,
             # python list index starting from 0, drive sheet index from 1
@@ -162,9 +161,9 @@ class DayWorksheetManager:
         )  # type:ignore
 
     def update_stock_out(self, product_data: list[str], amount: int, row: int) -> None:
-        logger.info(f"update monthly report stock_out by value'{amount}'")
         old_value: int = int(product_data[PRODUCT_STOCK_OUT_INDEX])
-        increment_values: int = old_value + amount
+        increment_values: int = abs(old_value) + amount
+        logger.info(f"update day report stock_out by value'{increment_values}'")
         self.worksheet.update_cell(
             row=row,
             # python list index starting from 0, drive sheet index from 1
@@ -202,7 +201,7 @@ class MonthlyWorksheetProductManager:
     def add_new_product(
         self,
         product_name: str,
-        category: str | None,
+        category: str ,
         stock_in: int,
         stock_out: int,
     ) -> Any:
@@ -219,6 +218,7 @@ class MonthlyWorksheetProductManager:
                         "range": "B2:B3",
                         "values": [[category]],
                     },
+                    
                 ]
             )
 
@@ -235,16 +235,16 @@ class MonthlyWorksheetProductManager:
         if stock_in:
             self.update_stock_in(row=row, amount=stock_in)
         elif stock_out:
-            self.update_stock_out(row=row, amount=-abs(stock_out))
+            self.update_stock_out(row=row + 1, amount=-abs(stock_out))
 
     def update_stock_in(self, amount: int, row: int) -> Any:
-        logger.info(f"update stock_in by value '{amount}'")
+        logger.info(f"update monthly stock_in by value '{amount}'")
         self.worksheet.update_cell(row=row, col=self.col_index, value=amount)
 
     def update_stock_out(self, amount: int, row: int) -> Any:
         # + 1 because stock_out in next row
-        logger.info(f"update stock_out by value '{amount}'")
-        self.worksheet.update_cell(row=row + 1, col=self.col_index, value=amount)
+        logger.info(f"update monthly stock_out by value '{amount}'")
+        self.worksheet.update_cell(row=row, col=self.col_index, value=amount)
 
     def product_position(self, name: str) -> Cell:
         product: Cell | None = self.worksheet.find(name, in_column=1)

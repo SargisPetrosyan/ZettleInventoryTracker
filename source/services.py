@@ -1,6 +1,4 @@
-from sqlite3 import Row
 from gspread import Cell, Spreadsheet, Worksheet
-from source import context
 from source.context import Context
 from source.google_drive.drive_manager import DriveFileManager
 from source.google_drive.client import SpreadSheetClient, GoogleDriveClient
@@ -31,9 +29,12 @@ class YearFolderManger:
         self.drive_file_manager: DriveFileManager = drive_file_manager
         self.spreadsheet_file_manager: SpreadSheetFileManager = spreadsheet_file_manege
 
-    def ensure_year_folder(self, parent_folder_id: str, context: Context) -> None:
+    def ensure_year_folder(self,context: Context) -> None:
+        logger.info(f"check if 'year: {context.name.year}' folder exist")
+        parent_folder_id: str | None =context.shop_unique_id[context.product_update.organizationUuid]
+        
         year_folder_id: str | None = self.drive_file_manager.folder_exist_by_name(
-            folder_name=context.name.year,
+            folder_name=context.name.year_folder_name,
             parent_folder_id=parent_folder_id,
             page_size=100,
         )
@@ -203,7 +204,7 @@ class ProductManager:
             worksheet=month_worksheet, day=context.name.day
         )
 
-    def ensure_product(self, context: Context) -> None:
+    def ensure_and_update_product(self, context: Context) -> None:
         product_exist: bool = self.day_worksheet_manager.product_exist(
             product_name=context.product_data.name
         )
@@ -226,6 +227,48 @@ class ProductManager:
                 stock_in=context.stock_in_out.stock_in,
                 stock_out=context.stock_in_out.stock_out,
             )
+            return 
+        
+        logger.info(f"product by name '{context.product_data.name}' was found ")
+
+        day_worksheet_product_position: Cell = self.day_worksheet_manager.product_position(
+            name=context.product_data.name
+        )
+        day_worksheet_product_row: list[str] = (
+            self.day_worksheet_manager.get_product_row_data(
+                row=day_worksheet_product_position.row
+            )
+        )
+
+        month_worksheet_product_position: Cell = (
+            self.month_worksheet_manager.product_position(name=context.product_data.name)
+        )
+        monthly_worksheet_product_row: int = month_worksheet_product_position.row
+
+        if context.stock_in_out.stock_in:
+            logger.info("update stock in in worksheets")
+
+            self.day_worksheet_manager.update_stock_in(
+                product_data=day_worksheet_product_row,
+                amount=context.stock_in_out.stock_in,
+                row=day_worksheet_product_position.row,
+            )
+
+            self.month_worksheet_manager.update_stock_in(
+                amount=context.stock_in_out.stock_in, row=monthly_worksheet_product_row
+            )
+        elif context.stock_in_out.stock_out:
+            logger.info("update stock out in worksheets")
+
+            self.day_worksheet_manager.update_stock_out(
+                product_data=day_worksheet_product_row,
+                amount=context.stock_in_out.stock_out,
+                row=day_worksheet_product_position.row,
+            )
+
+            self.month_worksheet_manager.update_stock_out(
+                amount=context.stock_in_out.stock_out, row=monthly_worksheet_product_row
+            )
 
 
 class ProductDataUpdater:
@@ -235,7 +278,7 @@ class ProductDataUpdater:
         month_worksheet_manager: MonthlyWorksheetProductManager,
         context: Context,
     ):
-        logger.info("product by name '{product.name}' was found ")
+        logger.info(f"product by name '{context.product_data.name}' was found ")
 
         day_worksheet_product_position: Cell = day_worksheet_manager.product_position(
             name=context.product_data.name
@@ -256,7 +299,7 @@ class ProductDataUpdater:
 
             day_worksheet_manager.update_stock_in(
                 product_data=day_worksheet_product_row,
-                amount=context.stock_in_out.stock_out,
+                amount=context.stock_in_out.stock_in,
                 row=day_worksheet_product_position.row,
             )
 
@@ -275,27 +318,6 @@ class ProductDataUpdater:
             month_worksheet_manager.update_stock_out(
                 amount=context.stock_in_out.stock_out, row=monthly_worksheet_product_row
             )
-
-
-class StockInOrOut:
-    def __init__(self, product_update: InventoryBalanceChanged) -> None:
-        self.stock_in: int = 0
-        self.stock_out: int = 0
-        self.change: int = 0
-        self.before: int = 0
-
-        logger.info("check if product update stock_in or stock out")
-        before: int = product_update.inventory.before
-        after: int = product_update.inventory.before
-        change: int = product_update.inventory.change
-        if product_update.inventory.before > product_update.inventory.after:
-            logger.info(f" product is 'stock_out' 'before: {before} > after: {after}'")
-            self.stock_out: int = change
-            self.before: int = before
-        else:
-            logger.info(f" product is 'stock_in' 'before: {before} < after: {after}'")
-            self.stock_in: int = change
-            self.before: int = before
 
 
 class ManagerCreator:

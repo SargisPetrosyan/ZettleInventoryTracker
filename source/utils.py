@@ -9,12 +9,12 @@ class FileName:
         logger.info(f"initializing file name")
         self.year: str = str(object=date.year)
         self.year_folder_name: str = str(object=date.year)
-        self.month_worksheet_name: str = self.day_file_name
         self.month: str = str(object=date.month).zfill(2)
         self.day: str = str(object=date.day).zfill(2)
         self.day_worksheet_name: str = self.day
         self.month_file_name: str = str(object=date.strftime("%B"))
         self.day_file_name: str = f"{self.year}-{self.month}-{self.month_file_name}"
+        self.month_worksheet_name: str = self.day_file_name
         self.monthly_report_name: str = f"{self.year}-monthly report"
         logger.info(f"file name was created 'file_name: {self.day_file_name}'")
 
