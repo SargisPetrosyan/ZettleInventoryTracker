@@ -130,6 +130,7 @@ class DaySpreadsheetExistenceEnsurer:
                 templates_spreadsheet_id=DALASHOP_FOLDER_ID,
                 spreadsheet=spreadsheet,
             )
+
             context.day_spreadsheet_id = spreadsheet.id
             return spreadsheet
         spreadsheet: Spreadsheet = self.spreadsheet_file_manager.get_spreadsheet(
@@ -252,11 +253,11 @@ class DayWorksheetUpdater:
         context: Context,
         day_worksheet_writer: DayWorksheetProductWriter,
         day_worksheet_reader: DayWorksheetProductReader,
-    ):
-        logger.info(f"product by name '{context.product_data.name}' was found ")
+    ) -> None:
+        logger.info(msg=f"product by name '{context.product_data.name}' was found ")
 
         if context.stock_in_out.stock_in:
-            logger.info("update stock in in worksheets")
+            logger.info(msg="update stock in in worksheets")
             old_stock_in: int = day_worksheet_reader.get_product_stock_in(
                 product_row=day_worksheet_writer.row
             )
@@ -265,7 +266,7 @@ class DayWorksheetUpdater:
             )
 
         elif context.stock_in_out.stock_out:
-            logger.info("update stock in in worksheets")
+            logger.info(msg="update stock in in worksheets")
             old_stock_out: int = day_worksheet_reader.get_product_stock_out(
                 product_row=day_worksheet_writer.row
             )
@@ -280,11 +281,11 @@ class MonthWorksheetUpdater:
         context: Context,
         month_worksheet_writer: MonthWorksheetProductWriter,
         month_worksheet_reader: MonthWorksheetProductReader,
-    ):
-        logger.info(f"product by name '{context.product_data.name}' was found ")
+    ) -> None:
+        logger.info(msg=f"product by name '{context.product_data.name}' was found ")
 
         if context.stock_in_out.stock_in:
-            logger.info("update stock in in worksheets")
+            logger.info(msg="update stock in in worksheets")
             old_stock_in: int = month_worksheet_reader.get_product_stock_in(
                 product_row=month_worksheet_writer.row
             )
@@ -293,7 +294,7 @@ class MonthWorksheetUpdater:
             )
 
         elif context.stock_in_out.stock_out:
-            logger.info("update stock in in worksheets")
+            logger.info(msg="update stock in in worksheets")
             old_stock_out: int = month_worksheet_reader.get_product_stock_out(
                 product_row=month_worksheet_writer.row
             )
