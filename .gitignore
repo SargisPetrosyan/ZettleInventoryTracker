@@ -1,27 +1,57 @@
 # Python-generated files
 __pycache__/
-.pytest_cache/
-.mypy_cache/
-*.py[oc]
+*.py[cod]
+*$py.class
+*.so
 build/
 dist/
 wheels/
-vscode/
-logs/*
-*.log
-credentials.json
-token.json
-InventoryBalanceChanged.json
-Product.json
-test.py
+*.egg-info/
+*.egg
+MANIFEST
 
+# Testing & Coverage
+.pytest_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
 
-# Jupyter Notebook checkpoints
-*.egg-info
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
 
 # Virtual environments
 .venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
 
-# api kay
+# Logs
+logs/*
+*.log
+
+# Credentials & Sensitive Data (IMPORTANT - Never commit!)
+credentials.json
+token.json
+creds/credentials.json
+creds/token.json
 .env
+.env.local
+
+# Data files (local/temporary)
+InventoryBalanceChanged.json
+Product.json
+test.py
