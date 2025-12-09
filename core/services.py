@@ -288,7 +288,7 @@ class MonthWorksheetValueUpdater:
 
         if context.stock_in_out.stock_in:
             logger.info(msg="update stock in in worksheets")
-            print(context.product_data.name)
+
             product_row: int = month_worksheet_reader.get_product_row_by_name(
                 product_name=context.product_data.name
             )
@@ -309,16 +309,17 @@ class MonthWorksheetValueUpdater:
 
         elif context.stock_in_out.stock_out:
             logger.info(msg="update stock in in worksheets")
-            product_row: int = month_worksheet_reader.get_product_row_by_name(
+            stock_out_row: int = month_worksheet_reader.get_product_stock_out_row(
                 product_name=context.product_data.name
             )
             old_stock_out: int = month_worksheet_reader.get_product_stock_out(
-                product_row=product_row,
+                product_row=stock_out_row,
                 stock_out_col=context.name.month_stock_in_and_out_col_index,
             )
+            print(f"product_stock_oit_row{stock_out_row}")
             month_worksheet_writer.update_stock_out(
                 old_stock_out=old_stock_out,
                 amount=context.stock_in_out.stock_out,
-                row=product_row,
+                row=stock_out_row,
                 col=context.name.month_stock_in_and_out_col_index,
             )

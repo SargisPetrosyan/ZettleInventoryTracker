@@ -1,5 +1,6 @@
 from http.client import PRECONDITION_FAILED
 from math import prod
+from tkinter import RAISED
 from typing import List
 from gspread.worksheet import JSONResponse
 from gspread import Cell, ValueRange, Worksheet
@@ -7,12 +8,11 @@ from gspread import Cell, ValueRange, Worksheet
 from const import (
     DAY_PRODUCT_STOCK_IN_COL,
     DAY_PRODUCT_STOCK_OUT_COL,
+    MONTH_PRODUCT_STOCK_OUT_ROW_OFFSET,
     MONTH_WORKSHEET_FIRST_CELL,
     MONTH_PRODUCT_DATA_CELL_RANGE,
     DAY_PRODUCT_NAME_COL,
     MONTH_PRODUCT_NAME_COL,
-    MONTH_PRODUCT_STOCK_IN_COL_OFFSET,
-    MONTH_PRODUCT_STOCK_OUT_COL_OFFSET,
 )
 from core.context import Context
 from core.context import Context
@@ -45,14 +45,14 @@ class DayWorksheetProductReader:
         stock_in: Cell = self.worksheet.cell(row=product_row, col=self.stock_in_col)
 
         if not stock_in.value:
-            return 0
+            raise TypeError("day product stock in value not exist")
         return int(stock_in.value)
 
     def get_product_stock_out(self, product_row: int) -> int:
-        stock_out: Cell = self.worksheet.cell(row=product_row, col=self.stock_in_col)
+        stock_out: Cell = self.worksheet.cell(row=product_row, col=self.stock_out_index)
 
         if not stock_out.value:
-            return 0
+            raise TypeError("day product stock out value not exist")
         return int(stock_out.value)
 
     def product_exist(self, product_name: str) -> bool:
@@ -92,7 +92,7 @@ class DayWorksheetProductWriter:
 
     def update_stock_out(self, old_stock_out: int, amount: int, row: int) -> None:
         old_value: int = old_stock_out
-        increment_values: int = old_value + amount
+        increment_values: int = abs(old_value) + amount
         logger.info(f"update day report stock_out by value'{increment_values}'")
         self.worksheet.update_cell(
             row=row,
@@ -107,8 +107,6 @@ class MonthWorksheetProductReader:
         worksheet: Worksheet,
     ) -> None:
         self.worksheet: Worksheet = worksheet
-        self.stock_in_col: int = DAY_PRODUCT_STOCK_IN_COL
-        self.stock_out_col: int = DAY_PRODUCT_STOCK_OUT_COL
 
     def get_product_row_by_name(
         self,
@@ -119,22 +117,21 @@ class MonthWorksheetProductReader:
         )
 
         if not product:
-            return 0
-
+            raise TypeError("Month product value not exist ")
         return product.row
 
     def get_product_stock_in(self, product_row: int, stock_in_col: int) -> int:
         product: Cell = self.worksheet.cell(row=product_row, col=stock_in_col)
 
         if not product.value:
-            return 0
+            raise TypeError("Month product stock in value not exist ")
         return int(product.value)
 
     def get_product_stock_out(self, product_row: int, stock_out_col: int) -> int:
-        stock_out: Cell = self.worksheet.cell(row=product_row, col=stock_out_col)
+        stock_out: Cell = self.worksheet.cell(row=product_row , col=stock_out_col)
 
         if not stock_out.value:
-            return 0
+            raise TypeError("Month product stock out value not exist ")
         return int(stock_out.value)
 
     def product_exist(self, product_name: str) -> bool:
@@ -145,6 +142,16 @@ class MonthWorksheetProductReader:
         if not product:
             return False
         return True
+    
+    def get_product_stock_out_row(self,product_name:str) -> int:
+        product: Cell | None = self.worksheet.find(
+            query=product_name, in_column=MONTH_PRODUCT_NAME_COL
+            )
+
+        if not product:
+            raise TypeError("Month product value not exist ")
+        return product.row + MONTH_PRODUCT_STOCK_OUT_ROW_OFFSET #stock out row in next ro check_spreadsheet example
+
 
 
 class MonthWorksheetProductWriter:
@@ -191,21 +198,22 @@ class MonthWorksheetProductWriter:
         self.worksheet.update_cell(
             row=row,
             value=increment_values,
-            col=col
-            + MONTH_PRODUCT_STOCK_IN_COL_OFFSET,  # first 4 columns are 'product_name' 'category' etc.
+            col=col,  
         )
 
     def update_stock_out(
         self, old_stock_out: int, amount: int, row: int, col: int
     ) -> None:
         old_value: int = old_stock_out
-        increment_values: int = old_value + amount
+        increment_values: int = abs(old_value) + amount
+        print(f"old_value:{old_value}, amount:{amount}")
         logger.info(
             msg=f"update day report stock_out by value'{increment_values}' row:'{row}', col:'{col}'"
         )
+
+        print(row + MONTH_PRODUCT_STOCK_OUT_ROW_OFFSET)
         self.worksheet.update_cell(
             row=row,
-            col=col
-            + MONTH_PRODUCT_STOCK_IN_COL_OFFSET,  # first 4 columns are 'product_name' 'category' etc.
+            col=col,
             value=-abs(increment_values),
         )
