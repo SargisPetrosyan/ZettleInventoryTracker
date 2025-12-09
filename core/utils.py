@@ -1,6 +1,9 @@
 from datetime import datetime
 import logging
 from gspread.worksheet import JSONResponse
+from core.google_drive.client import GoogleDriveClient, SpreadSheetClient
+from core.google_drive.drive_manager import GoogleDriveFileManager
+from core.google_drive.sheet_manager import SpreadSheetFileManager
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -17,6 +20,7 @@ class FileName:
         self.day_file_name: str = f"{self.year}-{self.month}-{self.month_file_name}"
         self.month_worksheet_name: str = self.day_file_name
         self.monthly_report_name: str = f"{self.year}-monthly report"
+        self.month_stock_in_and_out_col_index: int = int(self.day)
         logger.info(f"file name was created 'file_name: {self.day_file_name}'")
 
 
@@ -46,3 +50,23 @@ def get_row_from_response(response: JSONResponse) -> int:
     else:
         product_row_number: str = product_row_position[0][1:]
         return int(product_row_number)
+
+
+class ManagersCreator:
+    def __init__(self) -> None:
+        self._spreadsheet_client = SpreadSheetClient()
+        self._google_drive_client = GoogleDriveClient()
+        self._spreadsheet_manager = SpreadSheetFileManager(
+            client=self._spreadsheet_client
+        )
+        self._google_drive_manager = GoogleDriveFileManager(
+            client=self._google_drive_client
+        )
+
+    @property
+    def google_drive_manager(self) -> GoogleDriveFileManager:
+        return self._google_drive_manager
+
+    @property
+    def spreadsheet_manager(self) -> SpreadSheetFileManager:
+        return self._spreadsheet_manager

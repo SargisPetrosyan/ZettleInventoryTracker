@@ -1,7 +1,5 @@
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 from datetime import datetime
-from fastapi.responses import JSONResponse
-import json
 
 
 class InventoryUpdatedBy(BaseModel):

@@ -1,15 +1,15 @@
 from fastapi import FastAPI
 from pandas import date_range
-from source.services import ManagerCreator
-from source.zettle.handler import ZettleWebhookHandler
-from source.zettle.validaton import InventoryBalanceChanged
+from core.utils import ManagersCreator
+from core.zettle.handler import ZettleWebhookHandler
+from core.zettle.validaton import InventoryBalanceChanged
 import logging
 from logging_config import setup_logger
 
 setup_logger()
 
 logger: logging.Logger = logging.getLogger(name=__name__)
-managers = ManagerCreator()
+managers = ManagersCreator()
 
 handler = ZettleWebhookHandler(
     google_drive_file_manager=managers.google_drive_manager,

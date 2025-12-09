@@ -1,4 +1,4 @@
-from source.google_drive.client import GoogleDriveClient
+from core.google_drive.client import GoogleDriveClient
 import os
 from dotenv import load_dotenv
 import logging
@@ -12,7 +12,7 @@ load_dotenv()
 ROOT_FOLDER: str | None = os.getenv(key="ROOT_FOLDER_ID")
 
 
-class DriveFileManager:
+class GoogleDriveFileManager:
     def __init__(self, client: GoogleDriveClient) -> None:
         self.client: GoogleDriveClient = client
         logger.info("'DriveFileManager' was created ")
@@ -52,7 +52,7 @@ class DriveFileManager:
             raise ValueError(f"{folder_name} has duplicate")
         return files[0]["id"]
 
-    def get_spreadsheet_by_name(
+    def get_spreadsheet_id_by_name(
         self, spreadsheet_name: str, parent_folder_id: str, page_size: int
     ) -> str | None:
         files_list: dict = self.client.list(
@@ -68,7 +68,6 @@ class DriveFileManager:
 
         # check if multiple files raise error
         if len(files) > 1:
-            print(f"{spreadsheet_name}file has duplicate")
             raise ValueError(f"{spreadsheet_name} has duplicate")
 
         return files[0]["id"]

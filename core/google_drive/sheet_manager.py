@@ -1,11 +1,5 @@
 from typing import Any
-from gspread.worksheet import JSONResponse
-from token import RPAR
-from fastapi.responses import JSONResponse
-from gspread import Cell, ValueRange
-import rich
-from source.abstract_classes import WorksheetProductWriter
-from source.google_drive.client import SpreadSheetClient  # type:ignore
+from core.google_drive.client import SpreadSheetClient
 from gspread.exceptions import WorksheetNotFound
 from gspread.worksheet import Worksheet
 from gspread.spreadsheet import Spreadsheet
@@ -13,9 +7,6 @@ import logging
 from const import (
     WORKSHEET_SAMPLE_COPY_NAME,
     WORKSHEET_SAMPLE_NAME,
-    PRODUCT_STOCK_IN_COL_INDEX,
-    PRODUCT_STOCK_OUT_COL_INDEX,
-    PRODUCT_STOCK_IN_COL_INDEX,
 )
 import logging
 

@@ -1,29 +1,25 @@
 import logging
 from os import name
 
-from source.context import Context
-from source.google_drive.drive_manager import DriveFileManager
-from source.google_drive.product_managers import (
-    DayWorksheetProductReader,
-    MonthWorksheetProductWriter,
-)
-from source.google_drive.sheet_manager import (
+from core.context import Context
+from core.google_drive.drive_manager import GoogleDriveFileManager
+from core.google_drive.sheet_manager import (
     SpreadSheetFileManager,
 )
 from const import DAY_TEMPLATE_ID, MONTHLY_TEMPLATE_ID, ROOT_FOLDER_ID
 from gspread.spreadsheet import Spreadsheet
 from gspread.worksheet import Worksheet
-from source.services import (
+from core.services import (
     DayProductExistenceEnsurer,
     DaySpreadsheetExistenceEnsurer,
     MonthProductExistenceEnsurer,
     MonthSpreadsheetExistenceEnsurer,
-    MonthWorksheetUpdater,
+    MonthWorksheetValueUpdater,
     WorksheetExistenceEnsurer,
     YearFolderExistenceEnsurer,
-    DayWorksheetUpdater,
+    DayWorksheetValueUpdater,
 )
-from source.zettle.validaton import InventoryBalanceChanged, ProductData
+from core.zettle.validaton import InventoryBalanceChanged, ProductData
 import json
 import logging
 
@@ -37,10 +33,12 @@ with open("data/Product.json", "r") as fp:
 class ZettleWebhookHandler:
     def __init__(
         self,
-        google_drive_file_manager: DriveFileManager,
+        google_drive_file_manager: GoogleDriveFileManager,
         spreadsheet_file_manager: SpreadSheetFileManager,
     ) -> None:
-        self.google_drive_file_manager: DriveFileManager = google_drive_file_manager
+        self.google_drive_file_manager: GoogleDriveFileManager = (
+            google_drive_file_manager
+        )
         self.spreadsheet_file_manager: SpreadSheetFileManager = spreadsheet_file_manager
         self.year_folder_manager = YearFolderExistenceEnsurer(
             drive_file_manager=self.google_drive_file_manager,
@@ -62,7 +60,7 @@ class ZettleWebhookHandler:
         product_data = ProductData(**PRODUCT_UPDATE)
 
         context = Context(
-            date=request.timestamp,
+            date=request.inventory.updatedAt,
             inventory_balance_update=request,
             product_data=product_data,
         )
@@ -70,16 +68,17 @@ class ZettleWebhookHandler:
         # step 1 ensure year folder:
         self.year_folder_manager.ensure_year_folder(context=context)
 
-        # step 2.1 ensure day spreadsheet
-        day_spreadsheet: Spreadsheet = (
-            self.day_spreadsheet_existence_ensurer.ensure_day_spreadsheet(
-                context=context,
-            )
-        )
-        # step 2.2 ensure month spreadsheet
+        # step 2.1 ensure month spreadsheet
         month_spreadsheet: Spreadsheet = (
             self.monthly_spreadsheet_existence_ensurer.ensure_month_spreadsheet(
                 context=context
+            )
+        )
+
+        # step 2.2 ensure day spreadsheet
+        day_spreadsheet: Spreadsheet = (
+            self.day_spreadsheet_existence_ensurer.ensure_day_spreadsheet(
+                context=context,
             )
         )
 
@@ -106,14 +105,14 @@ class ZettleWebhookHandler:
         month_product.ensure_month_product(context=context)
 
         # step 5.1 update day remote worksheet
-        DayWorksheetUpdater.update_day_worksheet(
+        DayWorksheetValueUpdater.update_day_worksheet(
             day_worksheet_reader=day_product.day_worksheet_reader,
             day_worksheet_writer=day_product.day_worksheet_writer,
             context=context,
         )
 
         # step 5.2 update month remote worksheet
-        MonthWorksheetUpdater.update_month_worksheet(
+        MonthWorksheetValueUpdater.update_month_worksheet(
             month_worksheet_reader=month_product.month_worksheet_reader,
             month_worksheet_writer=month_product.month_worksheet_writer,
             context=context,
