@@ -18,19 +18,12 @@ handler = ZettleWebhookHandler(
 
 app = FastAPI()
 
+@app.get(path="/hello")
+def test_server() -> dict[str, str]:
+    data: dict[str, str] = {"test":"working"}
+    return data
 
 @app.post(path="/store_inventory_data_webhook")
 def store_inventory_data_webhook(request: InventoryBalanceChanged) -> None:
     handler.process_webhook(request=request)
 
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8000,
-        log_level="debug",
-        reload=True,
-    )
