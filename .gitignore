@@ -48,6 +48,8 @@ credentials.json
 token.json
 creds/credentials.json
 creds/token.json
+Core/zettle/zettle_creds
+
 .env
 .env.local
 

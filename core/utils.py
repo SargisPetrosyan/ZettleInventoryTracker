@@ -5,6 +5,7 @@ from const import MONTH_PRODUCT_STOCK_IN_COL_OFFSET
 from core.google_drive.client import GoogleDriveClient, SpreadSheetClient
 from core.google_drive.drive_manager import GoogleDriveFileManager
 from core.google_drive.sheet_manager import SpreadSheetFileManager
+import os
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -72,3 +73,15 @@ class ManagersCreator:
     @property
     def spreadsheet_manager(self) -> SpreadSheetFileManager:
         return self._spreadsheet_manager
+
+
+class PathCreator:
+    def __init__(self) -> None:      
+        BASE_DIR: str = os.path.dirname(p=os.path.abspath(path=__file__))
+        self.token_path: str = os.path.abspath(
+            path=os.path.join(BASE_DIR, "zettle_creds/zettle_access_token.json")
+        )
+
+        self.credentials_path: str = os.path.abspath(
+            path=os.path.join(BASE_DIR, "zettle_creds/zettle_credentials.json")
+        )

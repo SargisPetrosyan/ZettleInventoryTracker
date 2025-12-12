@@ -6,7 +6,7 @@ from core.google_drive.drive_manager import GoogleDriveFileManager
 from core.google_drive.sheet_manager import (
     SpreadSheetFileManager,
 )
-from const import DAY_TEMPLATE_ID, MONTHLY_TEMPLATE_ID, ROOT_FOLDER_ID
+from const import DAY_TEMPLATE_ID, MONTHLY_TEMPLATE_ID
 from gspread.spreadsheet import Spreadsheet
 from gspread.worksheet import Worksheet
 from core.services import (

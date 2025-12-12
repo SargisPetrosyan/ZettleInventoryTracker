@@ -47,3 +47,5 @@ SHOP_ID: dict[str, str] = {
 # month worksheet
 MONTH_WORKSHEET_FIRST_CELL: str = "A2:A3"  # merged cells
 MONTH_PRODUCT_DATA_CELL_RANGE: str = "A2:C2"
+
+

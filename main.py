@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from flask import request
 from pandas import date_range
+import rich
 from core.utils import ManagersCreator
 from core.zettle.handler import ZettleWebhookHandler
 from core.zettle.validaton import InventoryBalanceChanged
@@ -18,12 +20,13 @@ handler = ZettleWebhookHandler(
 
 app = FastAPI()
 
-@app.get(path="/hello")
+@app.get(path="/")
 def test_server() -> dict[str, str]:
     data: dict[str, str] = {"test":"working"}
     return data
 
-@app.post(path="/store_inventory_data_webhook")
-def store_inventory_data_webhook(request: InventoryBalanceChanged) -> None:
-    handler.process_webhook(request=request)
+@app.post("/store_inventory_data_webhook")
+def store_inventory_data_webhook(request: Request):
+    rich.print(request.body)
+    return {"status": "ok"} 
 
