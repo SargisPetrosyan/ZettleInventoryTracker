@@ -75,13 +75,13 @@ class ManagersCreator:
         return self._spreadsheet_manager
 
 
-class PathCreator:
+class ZettleCredsPathManager:
     def __init__(self) -> None:      
         BASE_DIR: str = os.path.dirname(p=os.path.abspath(path=__file__))
         self.token_path: str = os.path.abspath(
-            path=os.path.join(BASE_DIR, "zettle_creds/zettle_access_token.json")
+            path=os.path.join(BASE_DIR, "zettle/zettle_creds/zettle_access_token.json")
         )
 
         self.credentials_path: str = os.path.abspath(
-            path=os.path.join(BASE_DIR, "zettle_creds/zettle_credentials.json")
+            path=os.path.join(BASE_DIR, "zettle/zettle_creds/zettle_credentials.json")
         )

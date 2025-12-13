@@ -1,20 +1,15 @@
-
-
 from typing import Any
 import os
 import httpx
 from datetime import datetime,timedelta
 import json
 import logging
-from core.utils import PathCreator
-from logging_config import setup_logger
+from core.utils import ZettleCredsPathManager
 from datetime import datetime, timedelta
 from core.zettle.validaton import ZettleAccessToken, ZettleCredentials, ZettleNewAccessToken
 from dotenv import load_dotenv
 
 load_dotenv()
-
-setup_logger()
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -24,21 +19,26 @@ client_key: str | None= os.getenv(key="ZETTLE_PRODUCT_READ_KEY")
 
 
 class ZettleTokenChecker:
-    def __init__(self,path_manager:PathCreator) -> None:
+    def __init__(self,path_manager:ZettleCredsPathManager) -> None:
         self._token_path:str = path_manager.token_path
 
     def is_valid(self) -> bool:
+        logger.info("check if zettle access token is valid ")
         token_file: dict[str, Any] = self._get_token_file()
         self._zettle_token_info = ZettleAccessToken(**token_file)
         date_now: datetime = datetime.now()
         if  date_now - self._zettle_token_info.expiry  > timedelta(seconds=7200):
+            logger.info("zettle access token is not valid ")
             return False
+
+        logger.info("zettle access token is valid ")
         return True
     
     def token_file_exist(self) -> bool:
         return os.path.exists(path=self._token_path)
     
     def _get_token_file(self)->dict[str,Any]:
+        logger.info("get token access token is valid ")
         with open(file=self._token_path,mode='r',encoding='utf-8') as f:
             file:dict = json.load(fp=f)
         return file
@@ -48,14 +48,16 @@ class ZettleTokenChecker:
         return self._zettle_token_info.access_token
 
 class ZettleCredentialsManager:
-    def __init__(self, path_manager:PathCreator) -> None:
+    def __init__(self, path_manager:ZettleCredsPathManager) -> None:
         self._credentials_path: str = path_manager.credentials_path
         self._access_token_path: str = path_manager.token_path
+        self._path_manager: ZettleCredsPathManager = path_manager
 
     def _generate_expire_date(self)-> datetime:
         return datetime.now() + timedelta(seconds=7200)
 
-    def _dump_access_token(self,access_token:ZettleNewAccessToken):
+    def _dump_access_token(self,access_token:ZettleNewAccessToken) -> None:
+        logger.info(msg="dump new access token")
         expire_date:datetime = self._generate_expire_date()
         new_access_token_data: dict[str, str] = {
             "access_token": access_token.access_token,
@@ -66,9 +68,12 @@ class ZettleCredentialsManager:
             json.dump(obj=new_access_token_data,fp=file)
 
     def _validate_access_token(self,access_token:dict) -> ZettleNewAccessToken:
+        logger.info(msg="validate access token file")
+
         return ZettleNewAccessToken(**access_token)
 
     def get_new_access_token(self)  -> str:
+        logger.info("get new access token")
         with open( file=self._credentials_path, mode='r') as f:
             file = json.load(fp=f)
 
@@ -91,11 +96,11 @@ class ZettleCredentialsManager:
         return access_token_info.access_token
 
     
-    def get_zettle_credentials(self, path_manager:PathCreator) -> str:
+    def get_access_token(self) -> str:
         logger.info(msg="getting google drive credentials")
-        creds_checker =ZettleTokenChecker(path_manager=path_manager)
+        creds_checker =ZettleTokenChecker(path_manager=self._path_manager)
 
         if creds_checker.token_file_exist() and creds_checker.is_valid():
-               return creds_checker.access_token
+            return creds_checker.access_token
         else:
             return self.get_new_access_token()

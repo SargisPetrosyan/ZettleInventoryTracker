@@ -206,12 +206,10 @@ class MonthWorksheetProductWriter:
     ) -> None:
         old_value: int = old_stock_out
         increment_values: int = abs(old_value) + amount
-        print(f"old_value:{old_value}, amount:{amount}")
         logger.info(
             msg=f"update day report stock_out by value'{increment_values}' row:'{row}', col:'{col}'"
         )
 
-        print(row + MONTH_PRODUCT_STOCK_OUT_ROW_OFFSET)
         self.worksheet.update_cell(
             row=row,
             col=col,

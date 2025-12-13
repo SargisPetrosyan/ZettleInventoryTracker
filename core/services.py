@@ -297,9 +297,6 @@ class MonthWorksheetValueUpdater:
                 stock_in_col=context.name.month_stock_in_and_out_col_index,
             )
 
-            print(
-                f"odl_stock_in:{old_stock_in}, col: {context.name.month_stock_in_and_out_col_index} "
-            )
             month_worksheet_writer.update_stock_in(
                 old_stock_in=old_stock_in,
                 amount=context.stock_in_out.stock_in,
@@ -316,7 +313,6 @@ class MonthWorksheetValueUpdater:
                 product_row=stock_out_row,
                 stock_out_col=context.name.month_stock_in_and_out_col_index,
             )
-            print(f"product_stock_oit_row{stock_out_row}")
             month_worksheet_writer.update_stock_out(
                 old_stock_out=old_stock_out,
                 amount=context.stock_in_out.stock_out,
