@@ -35,16 +35,17 @@ class WebhookSubscriptionManager:
         "transportName": "WEBHOOK",
         "eventNames": self.events,
         "destination": self.destination_url,
-        "contactEmail": self.mail
+        "contactEmail": self.mail,
         }
         logger.info("creating subscription")
-        httpx.post(
-            url='https://pusher.izettle.com/organizations/self/subscriptions',
+        response = httpx.post(
+            url='https://pusher.izettle.com/organizations/self/subscriptions/',
             json=data,
             headers={
                 'Authorization': f'Bearer {self.access_token}',
                 'Content-Type': 'application/json'
             })
+        rich.print(response.json())
 
     def check_webhook(self)   -> None:
         result: httpx.Response = httpx.get(
@@ -54,15 +55,17 @@ class WebhookSubscriptionManager:
             'Content-Type': 'application/json'
         })
         logger.info(msg=f"you have {len(result.json())}")
+        rich.print(result.json())
     
     def delete_webhook(self,subscription_uuid:str) -> None:
         logger.info(msg=f"deleting subscription")
-        httpx.delete(
+        response = httpx.delete(
         url=f'https://pusher.izettle.com/organizations/self/subscriptions/{subscription_uuid}',
         headers={
             'Authorization': f'Bearer {self.access_token}',
             'Content-Type': 'application/json'
         })
+        rich.print()
 
     def update_subscription(
             self,
