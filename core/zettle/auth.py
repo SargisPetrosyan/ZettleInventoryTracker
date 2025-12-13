@@ -72,7 +72,7 @@ class ZettleCredentialsManager:
 
         return ZettleNewAccessToken(**access_token)
 
-    def get_new_access_token(self)  -> str:
+    def _get_new_access_token(self)  -> str:
         logger.info("get new access token")
         with open( file=self._credentials_path, mode='r') as f:
             file = json.load(fp=f)
@@ -103,4 +103,4 @@ class ZettleCredentialsManager:
         if creds_checker.token_file_exist() and creds_checker.is_valid():
             return creds_checker.access_token
         else:
-            return self.get_new_access_token()
+            return self._get_new_access_token()
