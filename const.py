@@ -6,7 +6,7 @@ WORKSHEET_SAMPLE_NAME: str = "WORKSHEET_SAMPLE"
 DALAHOP_FOLDER_NAME: str = "DALASHOP"
 ARTANDCRAFT_FOLDER_NAME: str = "ART_CRAFT"
 CAFFE_FOLDER_NAME: str = "DALA_CAFFE"
-
+WEBHOOK_ENDPOINT_NAME: str = "/store_inventory_data_webhook"
 # ids
 DAY_TEMPLATE_ID = "1Xh5ZAwsr_SaF2GHQHmJZwhdZnQM-adSFiMrAAB7yc3s"
 MONTHLY_TEMPLATE_ID: str = "1UvJ9bcsn6U2n9joXC55nEwPb0ifpRu1gUwAPe2og77g"
@@ -47,5 +47,8 @@ SHOP_ID: dict[str, str] = {
 # month worksheet
 MONTH_WORKSHEET_FIRST_CELL: str = "A2:A3"  # merged cells
 MONTH_PRODUCT_DATA_CELL_RANGE: str = "A2:C2"
+
+# webhook constants
+SHOP_SUBSCRIPTION_EVENTS:list[str] = ["InventoryBalanceChanged"]
 
 

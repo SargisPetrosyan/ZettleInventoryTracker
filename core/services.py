@@ -34,7 +34,7 @@ class YearFolderExistenceEnsurer:
 
     def ensure_year_folder(self, context: Context) -> None:
         logger.info(msg=f"check if 'year: {context.name.year}' folder exist")
-        parent_folder_id: str | None = SHOP_ID[context.product_update.organizationUuid]
+        parent_folder_id: str | None = SHOP_ID[str(context.product_update.organizationUuid)]
 
         year_folder_id: str | None = self.drive_file_manager.folder_exist_by_name(
             folder_name=context.name.year_folder_name,

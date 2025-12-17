@@ -4,7 +4,6 @@ from pandas import date_range
 import rich
 from core.utils import ManagersCreator
 from core.zettle.handler import ZettleWebhookHandler
-from core.zettle.validaton import InventoryBalanceChanged
 import logging
 from logging_config import setup_logger
 
@@ -26,7 +25,8 @@ def test_server() -> dict[str, str]:
     return data
 
 @app.post("/store_inventory_data_webhook")
-def store_inventory_data_webhook(request: Request):
-    rich.print(request.body)
-    return {"status": "ok"} 
+async def store_inventory_data_webhook(request: Request):
+    body = await request.body()
+    rich.print(body.decode())
+    return {"status": "ok"}
 

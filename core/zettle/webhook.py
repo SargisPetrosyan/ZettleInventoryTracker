@@ -1,90 +1,100 @@
+import math
 from typing import Any
 from dotenv import load_dotenv
 import os
+from abc import abstractmethod,ABC
 import rich
-from core.utils import ZettleCredsPathManager
-from core.zettle.auth import ZettleCredentialsManager
-load_dotenv()
 import logging
-
-logger: logging.Logger = logging.getLogger(name=__name__)
-
-
-path_manager = ZettleCredsPathManager()
-manager = ZettleCredentialsManager(path_manager=path_manager)
 
 import httpx
 
-class WebhookSubscriptionManager:
-    def __init__(
-            self, 
-            access_token:str,
-            uuid:str,
-            events:list[str],
-            destination_url:str,
-            mail: str) -> None:
-        self.access_token: str = access_token
-        self.uuid: str = uuid
-        self.events: list[str] = events
-        self.destination_url:str = destination_url
-        self.mail: str = mail
+from core.utils import CredentialContext
+from core.zettle.auth import ZettleCredentialsManager
+load_dotenv()
 
-    def create_subscription(self,) -> None:
+
+logger: logging.Logger = logging.getLogger(name=__name__)
+
+class WebhookManager(ABC):
+
+    @abstractmethod
+    def create_subscription(self)-> None:
+        raise NotImplementedError
+    
+    @abstractmethod
+    def check_subscription(self)-> None:
+        raise NotImplementedError
+    
+    @abstractmethod
+    def delete_subscription(self)-> None:
+        raise NotImplementedError
+    
+    @abstractmethod
+    def update_subscription(self,)-> None:
+        raise NotImplementedError
+
+class WebhookSubscriptionManager(WebhookManager):
+    def __init__(self, shop_name:str) -> None:
+        self.shop_name:str = shop_name
+        self.creds_manager: ZettleCredentialsManager = ZettleCredentialsManager(shop_name=self.shop_name)
+        self.credential_context = CredentialContext(shop_name=shop_name)
+
+    def create_subscription(self) -> None:
+        access_token: str = self.creds_manager.get_access_token()
         data: dict[str,Any] = {
-        "uuid": self.uuid,
+        "uuid": self.credential_context.subscription_uuid,
         "transportName": "WEBHOOK",
-        "eventNames": self.events,
-        "destination": self.destination_url,
-        "contactEmail": self.mail,
+        "eventNames": self.credential_context.events,
+        "destination": self.credential_context.destination_url,
+        "contactEmail": self.credential_context.mail,
         }
-        logger.info("creating subscription")
-        response = httpx.post(
+        logger.info(msg="creating subscription")
+        response: httpx.Response = httpx.post(
             url='https://pusher.izettle.com/organizations/self/subscriptions/',
             json=data,
             headers={
-                'Authorization': f'Bearer {self.access_token}',
+                'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/json'
             })
-        rich.print(response.json())
+        logger.info(msg=f"created subscription for shop {self.shop_name} response : {response.json()}")
 
-    def check_webhook(self)   -> None:
+    def check_subscription(self)   -> None:
+        access_token: str = self.creds_manager.get_access_token()
         result: httpx.Response = httpx.get(
         url='https://pusher.izettle.com/organizations/self/subscriptions',
         headers={
-            'Authorization': f'Bearer {self.access_token}',
+            'Authorization': f'Bearer {access_token}',
             'Content-Type': 'application/json'
         })
-        logger.info(msg=f"you have {len(result.json())}")
-        rich.print(result.json())
+        logger.info(msg=f"subscriptions for {self.shop_name} count:{len(result.json())} data: {result.json()}")
+
     
-    def delete_webhook(self,subscription_uuid:str) -> None:
+    def delete_subscription(self) -> None:
+        access_token: str = self.creds_manager.get_access_token()
         logger.info(msg=f"deleting subscription")
         response = httpx.delete(
-        url=f'https://pusher.izettle.com/organizations/self/subscriptions/{subscription_uuid}',
+        url=f'https://pusher.izettle.com/organizations/self/subscriptions/{self.credential_context.subscription_uuid}',
         headers={
-            'Authorization': f'Bearer {self.access_token}',
+            'Authorization': f'Bearer {access_token}',
             'Content-Type': 'application/json'
         })
-        rich.print()
+        logger.info(f"deleted shop {self.shop_name} subscription response {response.json()}")
 
-    def update_subscription(
-            self,
-            subscription_uuid:str,
-            mail:str,
-            destination_url:str, 
-            events:list[str]) -> None:
+
+    def update_subscription(self ) -> None:
+        access_token: str = self.creds_manager.get_access_token()
         data: dict[str,Any] = {
-        "eventNames": events,
-        "destination": destination_url,
-        "contactEmail": mail,
+        "eventNames": self.credential_context.events,
+        "destination": self.credential_context.destination_url,
+        "contactEmail": self.credential_context.mail,
     }
         logger.info(msg=f"updating subscription")
-        httpx.put(
-        url=f'https://pusher.izettle.com/organizations/self/subscriptions/{subscription_uuid}',
+        response: httpx.Response = httpx.put(
+        url=f'https://pusher.izettle.com/organizations/self/subscriptions/{self.credential_context.subscription_uuid}',
         headers={
-            'Authorization': f'Bearer {self.access_token}',
+            'Authorization': f'Bearer {access_token}',
             'Content-Type': 'application/json'
         },
         json=data)
 
-
+        logger.info(f"updated Dala shop subscription{response.json()}")

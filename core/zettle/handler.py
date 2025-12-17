@@ -19,7 +19,8 @@ from core.services import (
     YearFolderExistenceEnsurer,
     DayWorksheetValueUpdater,
 )
-from core.zettle.validaton import InventoryBalanceChanged, ProductData
+from core.validation.inventory_update_validation import InventoryBalanceChanged
+from core.validation.product_validating import ProductData
 import json
 import logging
 
@@ -60,7 +61,7 @@ class ZettleWebhookHandler:
         product_data = ProductData(**PRODUCT_UPDATE)
 
         context = Context(
-            date=request.inventory.updatedAt,
+            date=request.payload.inventory.updatedAt,
             inventory_balance_update=request,
             product_data=product_data,
         )

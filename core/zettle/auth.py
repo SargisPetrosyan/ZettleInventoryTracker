@@ -6,7 +6,7 @@ import json
 import logging
 from core.utils import ZettleCredsPathManager
 from datetime import datetime, timedelta
-from core.zettle.validaton import ZettleAccessToken, ZettleCredentials, ZettleNewAccessToken
+from core.validation.zettle_aoth import ZettleAccessToken, ZettleCredentials, ZettleNewAccessToken
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -38,7 +38,7 @@ class ZettleTokenChecker:
         return os.path.exists(path=self._token_path)
     
     def _get_token_file(self)->dict[str,Any]:
-        logger.info("get token access token is valid ")
+        logger.info("get access token file ")
         with open(file=self._token_path,mode='r',encoding='utf-8') as f:
             file:dict = json.load(fp=f)
         return file
@@ -48,10 +48,8 @@ class ZettleTokenChecker:
         return self._zettle_token_info.access_token
 
 class ZettleCredentialsManager:
-    def __init__(self, path_manager:ZettleCredsPathManager) -> None:
-        self._credentials_path: str = path_manager.credentials_path
-        self._access_token_path: str = path_manager.token_path
-        self._path_manager: ZettleCredsPathManager = path_manager
+    def __init__(self, shop_name) -> None:
+        self._path_manager: ZettleCredsPathManager = ZettleCredsPathManager(shop_name=shop_name)
 
     def _generate_expire_date(self)-> datetime:
         return datetime.now() + timedelta(seconds=7200)
@@ -64,7 +62,7 @@ class ZettleCredentialsManager:
             "expiry":str(object=expire_date)
         }
 
-        with open(file=self._access_token_path,mode="w") as file:
+        with open(file=self._path_manager.token_path,mode="w") as file:
             json.dump(obj=new_access_token_data,fp=file)
 
     def _validate_access_token(self,access_token:dict) -> ZettleNewAccessToken:
@@ -74,7 +72,7 @@ class ZettleCredentialsManager:
 
     def _get_new_access_token(self)  -> str:
         logger.info("get new access token")
-        with open( file=self._credentials_path, mode='r') as f:
+        with open( file=self._path_manager.credentials_path, mode='r') as f:
             file = json.load(fp=f)
 
         credentials = ZettleCredentials(**file)

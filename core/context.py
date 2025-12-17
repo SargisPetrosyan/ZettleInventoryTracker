@@ -10,7 +10,8 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 from core.utils import FileName
 from datetime import datetime
 
-from core.zettle.validaton import InventoryBalanceChanged, ProductData
+from core.validation.inventory_update_validation import InventoryBalanceChanged
+from core.validation.product_validating import ProductData
 
 
 class Context:
@@ -78,10 +79,10 @@ class StockInOrOut:
         self.before: int = 0
 
         logger.info("check if product update stock_in or stock out")
-        before: int = product_update.inventory.before
-        after: int = product_update.inventory.after
-        change: int = product_update.inventory.change
-        if product_update.inventory.before > product_update.inventory.after:
+        before: int = product_update.payload.inventory.before
+        after: int = product_update.payload.inventory.after
+        change: int = product_update.payload.inventory.change
+        if product_update.payload.inventory.before > product_update.payload.inventory.after:
             logger.info(f" product is 'stock_out' 'before: {before} > after: {after}'")
             self.stock_out: int = change
             self.before: int = before

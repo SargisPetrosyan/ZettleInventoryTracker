@@ -167,7 +167,7 @@ class MonthWorksheetProductWriter:
                 values=[
                     context.product_data.name,
                     context.product_data.category,
-                    context.product_update.inventory.before,
+                    context.product_update.payload.inventory.before,
                 ],
                 table_range=MONTH_PRODUCT_DATA_CELL_RANGE,
             )
@@ -177,7 +177,7 @@ class MonthWorksheetProductWriter:
                 values=[
                     context.product_data.name,
                     context.product_data.category,
-                    context.product_update.inventory.before,
+                    context.product_update.payload.inventory.before,
                 ]
             )
 
