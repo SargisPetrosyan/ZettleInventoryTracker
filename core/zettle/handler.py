@@ -61,7 +61,7 @@ class ZettleWebhookHandler:
         product_data = ProductData(**PRODUCT_UPDATE)
 
         context = Context(
-            date=request.payload.inventory.updatedAt,
+            date=request.payload.updated.timestamp,
             inventory_balance_update=request,
             product_data=product_data,
         )

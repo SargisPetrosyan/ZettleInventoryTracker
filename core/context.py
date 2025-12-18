@@ -79,10 +79,10 @@ class StockInOrOut:
         self.before: int = 0
 
         logger.info("check if product update stock_in or stock out")
-        before: int = product_update.payload.inventory.before
-        after: int = product_update.payload.inventory.after
-        change: int = product_update.payload.inventory.change
-        if product_update.payload.inventory.before > product_update.payload.inventory.after:
+        before: int = product_update.payload.balanceBefore[0].balance
+        after: int = product_update.payload.balanceAfter[0].balance
+        change: int = abs(before) 
+        if product_update.payload.inventory.before > product_update.payload.inventory.after: #type:ignore
             logger.info(f" product is 'stock_out' 'before: {before} > after: {after}'")
             self.stock_out: int = change
             self.before: int = before

@@ -3,30 +3,32 @@ from datetime import datetime
 from pydantic import UUID1,UUID3,UUID4,UUID5
 
 
-class InventoryUpdatedBy(BaseModel):
-    userUuid: str
+class Updated(BaseModel):
+    uuid: UUID4
+    timestamp: datetime
     userType: str
-    clientUuid: str
-    updatedAt: str
+    clientUuid: UUID4 | None 
 
-class Product(BaseModel):
-    productUuid: str
-    variantUuid: str
-    locationUuid: str
+class BalanceBefore(BaseModel):
+    organizationUuid: UUID4
+    locationUuid: UUID1
+    productUuid: UUID1
+    variantUuid: UUID1
+    balance: int
 
-
-class Inventory(BaseModel):
-    before: int
-    after: int
-    change: int
-    updatedAt: datetime
+class BalanceAfter(BaseModel):
+    organizationUuid: UUID4
+    locationUuid: UUID1
+    productUuid: UUID1
+    variantUuid: UUID1
+    balance: int
 
 class Payload(BaseModel):
     organizationUuid: UUID4
-    updated: datetime
-    updatedBy: InventoryUpdatedBy
-    product: Product
-    inventory: Inventory
+    updated: Updated
+    balanceBefore: list[BalanceBefore]
+    balanceAfter: list[BalanceAfter]
+    externalUuid: None  | str
 
 class InventoryBalanceChanged(BaseModel):
     organizationUuid: UUID4
@@ -34,3 +36,4 @@ class InventoryBalanceChanged(BaseModel):
     eventName: str
     messageId: UUID5
     payload: Payload
+    timestamp: datetime
