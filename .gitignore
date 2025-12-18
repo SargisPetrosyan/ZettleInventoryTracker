@@ -48,8 +48,10 @@ credentials.json
 token.json
 creds/credentials.json
 creds/token.json
-creds/
+creds/*
+data/*
 core/zettle/zettle_creds
+data/single_product_data_exampl.py
 
 .env
 .env.local
