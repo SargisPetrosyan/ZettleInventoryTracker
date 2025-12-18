@@ -9,11 +9,12 @@ class ProductService:
 
     def get_product_data(self,product_uuid:str,organization_uuid:str) -> dict:
         access_token: str = self.creds_manager.get_access_token()
-        result: httpx.Response = httpx.get(
+        response: httpx.Response = httpx.get(
         url=f'https://products.izettle.com/organizations/{organization_uuid}/products/{product_uuid}',
         headers={
             'Authorization': f'Bearer {access_token}',
         })
-        return result.json()
+        response.raise_for_status()
+        return response.json()
 
     

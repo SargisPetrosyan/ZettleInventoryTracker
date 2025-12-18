@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
+from tracemalloc import start
 from gspread.worksheet import JSONResponse
 from const import MONTH_PRODUCT_STOCK_IN_COL_OFFSET, SHOP_SUBSCRIPTION_EVENTS, WEBHOOK_ENDPOINT_NAME
 from core.google_drive.client import GoogleDriveClient, SpreadSheetClient
@@ -112,3 +113,9 @@ class CredentialContext():
         if self._mail is None:
             raise TypeError(f"{self.name} mail cant be None")
         return self._mail 
+    
+class DateRangeBuilder:
+    def __init__(self,end_date:datetime,interval_by_hours:int) -> None:
+        start_date:datetime = end_date - timedelta(hours=interval_by_hours)
+        self.start_date:str = start_date.isoformat()
+        self.end_date:str = end_date.isoformat()

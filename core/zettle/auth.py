@@ -27,7 +27,7 @@ class ZettleTokenChecker:
         token_file: dict[str, Any] = self._get_token_file()
         self._zettle_token_info = ZettleAccessToken(**token_file)
         date_now: datetime = datetime.now()
-        if  date_now - self._zettle_token_info.expiry  > timedelta(seconds=7200):
+        if  date_now > self._zettle_token_info.expiry:
             logger.info("zettle access token is not valid ")
             return False
 
