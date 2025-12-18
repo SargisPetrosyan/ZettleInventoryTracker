@@ -1,17 +1,13 @@
-from const import (
-    ART_CRAFT_FOLDER_ID,
-    DALA_CAFFE_FOLDER_ID,
-    DALASHOP_FOLDER_ID,
-)
 import logging
-
 logger: logging.Logger = logging.getLogger(name=__name__)
+
+import logging
 
 from core.utils import FileName
 from datetime import datetime
 
-from core.validation.inventory_update_validation import InventoryBalanceChanged
-from core.validation.product_validating import ProductData
+from core.zettle.validation.inventory_update_validation import InventoryBalanceChanged
+from core.zettle.validation.product_validating import ProductData
 
 
 class Context:

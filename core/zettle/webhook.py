@@ -78,7 +78,7 @@ class WebhookSubscriptionManager(WebhookManager):
             'Authorization': f'Bearer {access_token}',
             'Content-Type': 'application/json'
         })
-        logger.info(f"deleted shop {self.shop_name} subscription response {response.json()}")
+        logger.info(f"deleted shop {self.shop_name} subscription ")
 
 
     def update_subscription(self ) -> None:

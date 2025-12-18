@@ -19,8 +19,8 @@ from core.services import (
     YearFolderExistenceEnsurer,
     DayWorksheetValueUpdater,
 )
-from core.validation.inventory_update_validation import InventoryBalanceChanged
-from core.validation.product_validating import ProductData
+from core.zettle.validation.inventory_update_validation import InventoryBalanceChanged
+from core.zettle.validation.product_validating import ProductData
 import json
 import logging
 
