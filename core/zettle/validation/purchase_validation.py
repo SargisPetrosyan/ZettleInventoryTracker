@@ -1,6 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
-from pydantic import UUID1,UUID3,UUID4,UUID5
+from pydantic import UUID1
+
 class Products(BaseModel):
     quantity: int
     productUuid: UUID1
@@ -17,7 +18,7 @@ class Purchases(BaseModel):
     currency:str
     timestamp:datetime
     products:list[Products]
-    
+
 
 class ListOfPurchases(BaseModel):
     purchases: Purchases

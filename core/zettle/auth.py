@@ -6,7 +6,7 @@ import json
 import logging
 from core.utils import ZettleCredsPathManager
 from datetime import datetime, timedelta
-from core.zettle.validation.zettle_aoth import ZettleAccessToken, ZettleCredentials, ZettleNewAccessToken
+from core.zettle_aoth import ZettleAccessToken, ZettleCredentials, ZettleNewAccessToken
 from dotenv import load_dotenv
 
 load_dotenv()
