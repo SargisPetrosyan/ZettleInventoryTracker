@@ -31,7 +31,7 @@ with open("data/Product.json", "r") as fp:
     PRODUCT_UPDATE = json.load(fp)
 
 
-class ZettleWebhookHandler:
+class ZettleWebhookHandlerOld:
     def __init__(
         self,
         google_drive_file_manager: GoogleDriveFileManager,

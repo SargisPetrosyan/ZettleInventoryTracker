@@ -134,7 +134,6 @@ class OrganizationsNameMappedId:
             os.getenv("ZETTLE_DALA_ORGANIZATION_UUID"):DALA_SHOP,
             os.getenv("ZETTLE_CAFE_ORGANIZATION_UUID"):CAFE,
         } 
-    
 
     def get_name_by_id(self,shop_id:str) -> str:
         organization_name: str | None = self.organizations.get(shop_id,None)

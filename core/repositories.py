@@ -1,28 +1,34 @@
-from abc import ABC, abstractmethod
-
 from sqlalchemy import Engine
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
-from setup_db import create_engine_connection
-from sqlmodel import Field, Session, SQLModel, create_engine, select
+from sqlmodel import Field, Session, select
 from models import InventoryBalanceUpdate
-class InventoryUpdateAbstract(ABC):
 
-    @abstractmethod
-    def store_product_data(self,product_data:InventoryBalanceUpdate):
-        raise NotImplementedError
-    
-    @abstractmethod
-    def fetch_product_data_by_date(self,variant_id:str):
-        raise NotImplementedError
-    
-
-class  InventoryUpdateRepository(InventoryUpdateAbstract):
-    def __init__(self) -> None:
-        self.engine: Engine  = create_engine_connection()
+class  InventoryUpdateRepository():
+    def __init__(self,engine) -> None:
+        self.engine: Engine  = engine
         
-    def store_product_data(self, product_data:InventoryBalanceUpdate) -> None:
+    def store_product_data(self,    
+            shop_id,
+            name,
+            category,
+            product_id,
+            variant_id,
+            timestamp,
+            before,
+            after,
+        ) -> None:
         with Session(bind=self.engine) as session:
-            session.add(instance=product_data)
+            InventoryBalanceUpdate(
+                shop_id=shop_id ,
+                name=name ,
+                category=category ,
+                product_id=product_id,
+                variant_id=variant_id,
+                timestamp=timestamp,
+                before=before,
+                after=after,
+            )
+            session.add(instance=InventoryBalanceUpdate)
             session.commit()
     
     def fetch_product_data_by_date(self,variant_id:str):
