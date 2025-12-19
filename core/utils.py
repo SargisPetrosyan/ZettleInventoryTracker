@@ -2,12 +2,18 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 import logging
 from tracemalloc import start
+import uuid
 from gspread.worksheet import JSONResponse
 from const import MONTH_PRODUCT_STOCK_IN_COL_OFFSET, SHOP_SUBSCRIPTION_EVENTS, WEBHOOK_ENDPOINT_NAME
 from core.google_drive.client import GoogleDriveClient, SpreadSheetClient
 from core.google_drive.drive_manager import GoogleDriveFileManager
 from core.google_drive.sheet_manager import SpreadSheetFileManager
 import os
+from const import (
+    DALA_SHOP,
+    ART_AND_CRAFT,
+    CAFE,
+)
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -119,3 +125,19 @@ class DateRangeBuilder:
         start_date:datetime = end_date - timedelta(hours=interval_by_hours)
         self.start_date:str = start_date.isoformat()
         self.end_date:str = end_date.isoformat()
+
+
+class OrganizationsNameMappedId:
+    def __init__(self) -> None:
+        self.organizations: dict[str | None, str] = {
+            os.getenv("ZETTLE_ART_ORGANIZATION_UUID"):ART_AND_CRAFT,
+            os.getenv("ZETTLE_DALA_ORGANIZATION_UUID"):DALA_SHOP,
+            os.getenv("ZETTLE_CAFE_ORGANIZATION_UUID"):CAFE,
+        } 
+    
+
+    def get_name_by_id(self,shop_id:str) -> str:
+        organization_name: str | None = self.organizations.get(shop_id,None)
+        if not organization_name:
+            raise TypeError("organization uuid is missing")
+        return organization_name

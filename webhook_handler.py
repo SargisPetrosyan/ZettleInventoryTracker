@@ -1,11 +1,4 @@
 import json
+from core.utils import OrganizationsNameMappedId
 from core.zettle.validation.inventory_update_validation import InventoryBalanceChanged
-
-class WebhookHandler:
-    def process_subscription(self,data):
-        
-        validated_data: InventoryBalanceChanged = InventoryBalanceChanged.model_validate_json(json_data=data)
-
-        #process data
-
-        #save data
+from core.zettle.data_fetchers.product_data_fetcher import ProductDataFetcher

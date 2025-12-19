@@ -17,6 +17,7 @@ class Context:
         inventory_balance_update: InventoryBalanceChanged,
         product_data: ProductData,
     ) -> None:
+        
         self._parent_folder_id: str | None = None
         self._year_folder_id: str | None = None
         self._day_spreadsheet_id: str | None = None

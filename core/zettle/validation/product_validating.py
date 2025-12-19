@@ -15,12 +15,10 @@ class Variants(BaseModel):
     uuid: UUID1
     name: None | str
     description: str | None
-    barcode: int
+    barcode: str
     price: Price
     costPrice: Price
-    vatPercentage:int
     options: list[Options | None]
-    sku: str
 
 class Properties(BaseModel):
     value:str

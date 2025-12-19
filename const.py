@@ -51,4 +51,12 @@ MONTH_PRODUCT_DATA_CELL_RANGE: str = "A2:C2"
 # webhook constants
 SHOP_SUBSCRIPTION_EVENTS:list[str] = ["InventoryBalanceChanged"]
 
+#Shop names:
+DALA_SHOP = "dala"
+ART_AND_CRAFT = "art"
+CAFE = "cafe"
+
+
+
+
 

@@ -5,7 +5,9 @@ import rich
 from core.utils import ManagersCreator
 from core.zettle.handler import ZettleWebhookHandler
 import logging
+from core.zettle.validation.inventory_update_validation import InventoryBalanceChanged
 from logging_config import setup_logger
+from test import process_subscription
 
 setup_logger()
 
@@ -25,8 +27,6 @@ def test_server() -> dict[str, str]:
     return data
 
 @app.post("/store_inventory_data_webhook")
-async def store_inventory_data_webhook(request: Request):
-    body = await request.body()
-    rich.print(body.decode())
-    return {"status": "ok"}
+async def store_inventory_data_webhook(inventory_update: InventoryBalanceChanged):
+    process_subscription(inventory_update=inventory_update)
 

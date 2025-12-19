@@ -6,14 +6,13 @@ import uuid
 
 class InventoryBalanceUpdate(SQLModel, table=True):
     shop_id:uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    timestamp:datetime.datetime = Field(default_factory=DateTime)
+    name: str
+    category: str | None = None
     product_id:uuid.UUID  = Field(default_factory=uuid.uuid1)
     variant_id:uuid.UUID = Field(default_factory=uuid.uuid1)
-    category: str | None = None
-    name: str
+    timestamp:datetime.datetime = Field(default_factory=DateTime)
     before:int
     after:int
-    change:int
 
     def __repr__(self) -> str:
         return f"""<InventoryBalanceUpdate(name='{self.name}', 
