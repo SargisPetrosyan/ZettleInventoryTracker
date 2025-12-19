@@ -9,7 +9,7 @@ from core.google_drive.sheet_manager import (
 from const import DAY_TEMPLATE_ID, MONTHLY_TEMPLATE_ID
 from gspread.spreadsheet import Spreadsheet
 from gspread.worksheet import Worksheet
-from core.services import (
+from core.google_drive.services import (
     DayProductExistenceEnsurer,
     DaySpreadsheetExistenceEnsurer,
     MonthProductExistenceEnsurer,

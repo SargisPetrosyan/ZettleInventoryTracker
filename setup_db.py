@@ -1,12 +1,10 @@
-from sqlalchemy import Engine, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.session import Session
+from sqlalchemy import Engine
+from sqlmodel import  SQLModel, create_engine
 
-engine: Engine = create_engine('sqlite:///library.db', echo=True)
+def create_engine_connection() -> Engine:
+    engine: Engine = create_engine(url="sqlite:///database.db")
 
-# Create a base class for our models
-Base = declarative_base()
+    SQLModel.metadata.create_all(bind=engine)
 
-# Create a session factory bound to our engine
-SessionLocal: sessionmaker[Session] = sessionmaker(bind=engine)
+    return engine
+

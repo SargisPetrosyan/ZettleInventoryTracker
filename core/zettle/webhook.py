@@ -33,7 +33,7 @@ class WebhookManager(ABC):
     def update_subscription(self,)-> None:
         raise NotImplementedError
 
-class WebhookSubscriptionManager(WebhookManager):
+class WebhookSubscriptionClient(WebhookManager):
     def __init__(self, shop_name:str) -> None:
         self.shop_name:str = shop_name
         self.creds_manager: ZettleCredentialsManager = ZettleCredentialsManager(shop_name=self.shop_name)

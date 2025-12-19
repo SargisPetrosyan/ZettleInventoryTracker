@@ -1,10 +1,8 @@
 import httpx
-import rich
 from core.zettle.auth import ZettleCredentialsManager
-from datetime import datetime, timedelta
 
 
-class PurchasesService:
+class PurchasesFetcher:
     def __init__(self, shop_name:str,) -> None:
         self.creds_manager: ZettleCredentialsManager = ZettleCredentialsManager(shop_name=shop_name)
 
