@@ -8,23 +8,19 @@ class  InventoryUpdateRepository():
         self.engine: Engine  = engine
         
     def store_product_data(self,    
+            timestamp,
             shop_id,
-            name,
-            category,
             product_id,
             variant_id,
-            timestamp,
             before,
             after,
         ) -> None:
         with Session(bind=self.engine) as session:
             InventoryBalanceUpdate(
-                shop_id=shop_id ,
-                name=name ,
-                category=category ,
+                timestamp=timestamp,
+                shop_id=shop_id,
                 product_id=product_id,
                 variant_id=variant_id,
-                timestamp=timestamp,
                 before=before,
                 after=after,
             )
@@ -35,4 +31,3 @@ class  InventoryUpdateRepository():
         with Session(bind=self.engine) as session:
             statement: SelectOfScalar[InventoryBalanceUpdate] = select(InventoryBalanceUpdate).where(InventoryBalanceUpdate.variant_id == variant_id)
             hero: InventoryBalanceUpdate | None = session.exec(statement=statement).first()
-            print(hero)
