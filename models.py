@@ -4,9 +4,10 @@ import uuid
 
 
 
-class InventoryBalanceUpdate(SQLModel, table=True):
+class InventoryBalanceUpdateModel(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
     timestamp:datetime.datetime = Field(default_factory=DateTime)
-    shop_id:uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    shop_id:uuid.UUID = Field(default_factory=uuid.uuid4)
     product_id:uuid.UUID  = Field(default_factory=uuid.uuid1)
     variant_id:uuid.UUID = Field(default_factory=uuid.uuid1)
     before:int
