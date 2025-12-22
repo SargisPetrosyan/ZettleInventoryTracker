@@ -19,7 +19,7 @@ from core.google_drive.services import (
     YearFolderExistenceEnsurer,
     DayWorksheetValueUpdater,
 )
-from core.zettle.validation.inventory_update_validation import InventoryBalanceChanged
+from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation
 from core.zettle.validation.product_validating import ProductData
 import json
 import logging
@@ -57,7 +57,7 @@ class ZettleWebhookHandlerOld:
             spreadsheet_file_manager=self.spreadsheet_file_manager
         )
 
-    def process_webhook(self, request: InventoryBalanceChanged) -> None:
+    def process_webhook(self, request: InventoryBalanceUpdateValidation) -> None:
         product_data = ProductData(**PRODUCT_UPDATE)
 
         context = Context(

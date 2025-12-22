@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from pydantic import UUID1,UUID3,UUID4,UUID5
+from pydantic import UUID1,UUID4,UUID5,HttpUrl,EmailStr
 
 
 class Updated(BaseModel):
@@ -30,7 +30,7 @@ class Payload(BaseModel):
     balanceAfter: list[BalanceAfter]
     externalUuid: None  | str
 
-class InventoryBalanceChanged(BaseModel):
+class InventoryBalanceUpdateValidation(BaseModel):
     organizationUuid: UUID4
     messageUuid: UUID1
     eventName: str

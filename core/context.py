@@ -6,7 +6,7 @@ import logging
 from core.utils import FileName
 from datetime import datetime
 
-from core.zettle.validation.inventory_update_validation import InventoryBalanceChanged
+from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation
 from core.zettle.validation.product_validating import ProductData
 
 
@@ -14,7 +14,7 @@ class Context:
     def __init__(
         self,
         date: datetime,
-        inventory_balance_update: InventoryBalanceChanged,
+        inventory_balance_update: InventoryBalanceUpdateValidation,
         product_data: ProductData,
     ) -> None:
         
@@ -23,7 +23,7 @@ class Context:
         self._day_spreadsheet_id: str | None = None
         self._month_spreadsheet_id: str | None = None
         self.name = FileName(date=date)
-        self.product_update: InventoryBalanceChanged = inventory_balance_update
+        self.product_update: InventoryBalanceUpdateValidation = inventory_balance_update
         self.product_data: ProductData = product_data
         self.stock_in_out = StockInOrOut(product_update=self.product_update)
 
@@ -69,7 +69,7 @@ class Context:
 
 
 class StockInOrOut:
-    def __init__(self, product_update: InventoryBalanceChanged) -> None:
+    def __init__(self, product_update: InventoryBalanceUpdateValidation) -> None:
         self.stock_in: int = 0
         self.stock_out: int = 0
         self.change: int = 0

@@ -1,7 +1,7 @@
 import rich
 from sqlalchemy import Engine
 from core.repositories import InventoryUpdateRepository
-from core.zettle.validation.inventory_update_validation import InventoryBalanceChanged,Payload
+from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation,Payload
 import logging
 
 from models import InventoryBalanceUpdateModel 
@@ -9,8 +9,8 @@ from models import InventoryBalanceUpdateModel
 logger: logging.Logger = logging.getLogger(name=__name__)
 
 class InventoryBalanceUpdater:
-    def __init__(self, inventory_balance_update:InventoryBalanceChanged, engine:Engine) -> None:
-        self.inventory_balance_update: InventoryBalanceChanged = inventory_balance_update
+    def __init__(self, inventory_balance_update:InventoryBalanceUpdateValidation, engine:Engine) -> None:
+        self.inventory_balance_update: InventoryBalanceUpdateValidation = inventory_balance_update
         self.database:InventoryUpdateRepository = InventoryUpdateRepository(engine=engine)
         
     def store_inventory_update(self) -> None:
