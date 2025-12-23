@@ -56,12 +56,6 @@ class WebhookSubscriptionClient(WebhookManager):
                 'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/json'
             })
-        
-        rich.print(f"""uuid: {self.credential_context.subscription_uuid},
-        "transportName": "WEBHOOK",
-        "eventNames": {self.credential_context.events},
-        "destination": {self.credential_context.destination_url},
-        "contactEmail": {self.credential_context.mail}""",)
         logger.info(msg=f"created subscription for shop {self.shop_name} response : {response.json()}")
 
     def check_subscription(self)   -> None:

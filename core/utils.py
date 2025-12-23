@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
+import json
 import logging
 from tracemalloc import start
 import uuid
+from fastapi import Request
 from gspread.worksheet import JSONResponse
+import rich
 from const import MONTH_PRODUCT_STOCK_IN_COL_OFFSET, SHOP_SUBSCRIPTION_EVENTS, WEBHOOK_ENDPOINT_NAME
 from core.google_drive.client import GoogleDriveClient, SpreadSheetClient
 from core.google_drive.drive_manager import GoogleDriveFileManager
@@ -140,3 +143,9 @@ class OrganizationsNameMappedId:
         if not organization_name:
             raise TypeError("organization uuid is missing")
         return organization_name
+
+async def json_to_dict(request:Request)-> dict:
+    body: bytes = await request.body()
+    data = json.loads(body)
+    data["payload"] = json.loads(data["payload"])
+    return data
