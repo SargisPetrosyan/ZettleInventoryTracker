@@ -1,11 +1,11 @@
 from datetime import datetime
 from pydantic import BaseModel
-from pydantic import UUID1
+from uuid import UUID
 
 class Products(BaseModel):
     quantity: int
-    productUuid: UUID1
-    variantUuid: UUID1
+    productUuid: UUID
+    variantUuid: UUID
     unitPrice: int
     name:str 
     variantName:str

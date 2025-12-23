@@ -1,7 +1,6 @@
 from datetime import datetime
-from uuid import uuid4
+from uuid import UUID
 from pydantic import BaseModel
-from pydantic import UUID1,UUID3,UUID4,UUID5
 
 class Price(BaseModel):
     amount:int
@@ -12,7 +11,7 @@ class Options(BaseModel):
     value:str
 
 class Variants(BaseModel):
-    uuid: UUID1
+    uuid: UUID
     name: None | str
     description: str | None
     barcode: str
@@ -31,13 +30,13 @@ class VariantOptionDefinitions(BaseModel):
     definitions: list[Definitions]
 
 class ProductData(BaseModel):
-    uuid: UUID1
+    uuid: UUID
     categories: list[None | str]
     description: str | None
     variants: list[None | Variants]
     etag:str
     updated:datetime
-    updatedBy: UUID4
+    updatedBy: UUID
     created: datetime
     variantOptionDefinitions:VariantOptionDefinitions
 

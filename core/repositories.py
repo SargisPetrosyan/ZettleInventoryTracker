@@ -1,5 +1,9 @@
+from datetime import datetime
+from typing import Sequence
+import rich
 from sqlalchemy import Engine
-from sqlmodel import Field, Session
+from sqlmodel import Field, Session, select, col
+from sqlmodel.sql._expression_select_cls import SelectOfScalar
 from models import InventoryBalanceUpdateModel
 
 
@@ -12,3 +16,12 @@ class  InventoryUpdateRepository():
             for i in inventory_update:
                 session.add(instance=i)
             session.commit()
+    
+    def fetch_data_by_date_interval(self,start_date:datetime, end_date:datetime) -> Sequence[InventoryBalanceUpdateModel]:
+        with Session(bind=self.engine) as session:
+            statement: SelectOfScalar[InventoryBalanceUpdateModel] = select(InventoryBalanceUpdateModel) \
+                .where(InventoryBalanceUpdateModel.timestamp > start_date,
+                        InventoryBalanceUpdateModel.timestamp < end_date)
+            
+            results: Sequence[InventoryBalanceUpdateModel] = session.exec(statement=statement).all()
+            return results

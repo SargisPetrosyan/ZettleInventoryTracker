@@ -1,39 +1,39 @@
 from pydantic import BaseModel
 from datetime import datetime
-from pydantic import UUID1,UUID4,UUID5,HttpUrl,EmailStr
+from uuid import UUID
 
 
 class Updated(BaseModel):
-    uuid: UUID4
+    uuid: UUID
     timestamp: datetime
     userType: str
-    clientUuid: UUID4 | None 
+    clientUuid: UUID | None 
 
 class BalanceBefore(BaseModel):
-    organizationUuid: UUID4
-    locationUuid: UUID1
-    productUuid: UUID1
-    variantUuid: UUID1
+    organizationUuid: UUID
+    locationUuid: UUID
+    productUuid: UUID
+    variantUuid: UUID
     balance: int
 
 class BalanceAfter(BaseModel):
-    organizationUuid: UUID4
-    locationUuid: UUID1
-    productUuid: UUID1
-    variantUuid: UUID1
+    organizationUuid: UUID
+    locationUuid: UUID
+    productUuid: UUID
+    variantUuid: UUID
     balance: int
 
 class Payload(BaseModel):
-    organizationUuid: UUID4
+    organizationUuid: UUID
     updated: Updated
     balanceBefore: list[BalanceBefore]
     balanceAfter: list[BalanceAfter]
     externalUuid: None  | str
 
 class InventoryBalanceUpdateValidation(BaseModel):
-    organizationUuid: UUID4
-    messageUuid: UUID1
+    organizationUuid: UUID
+    messageUuid: UUID
     eventName: str
-    messageId: UUID5
+    messageId: UUID
     payload: Payload
     timestamp: datetime
