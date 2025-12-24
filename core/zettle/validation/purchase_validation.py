@@ -13,12 +13,12 @@ class Products(BaseModel):
 
 
 class Purchases(BaseModel):
-    purchaseUUID:str
     amount:int
-    currency:str
     timestamp:datetime
     products:list[Products]
+    refunded: bool
+    refund: bool
 
 
 class ListOfPurchases(BaseModel):
-    purchases: Purchases
+    purchases: list[Purchases]

@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import json
+from uuid import UUID
 import logging
 from tracemalloc import start
+from typing import Any, Sequence
 import uuid
 from fastapi import Request
 from gspread.worksheet import JSONResponse
@@ -17,6 +19,10 @@ from const import (
     ART_AND_CRAFT,
     CAFE,
 )
+from core.repositories import InventoryUpdateRepository
+from core.zettle.data_fetchers import PurchasesFetcher
+from core.zettle.validation.purchase_validation import ListOfPurchases, Purchases
+from models import InventoryBalanceUpdateModel
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -149,3 +155,55 @@ async def json_to_dict(request:Request)-> dict:
     data = json.loads(body)
     data["payload"] = json.loads(data["payload"])
     return data
+
+
+class InventoryUpdatesDataJoiner:
+    def __init__(self,repo_updater:InventoryUpdateRepository,start_date:datetime,end_date:datetime):
+        self.repo_updater:InventoryUpdateRepository = repo_updater
+        self.start_date: datetime =start_date
+        self.end_date:datetime = end_date
+        self._inventory_update_joined:dict[frozenset[UUID], int ] = {}
+    
+    def join_inventory_update_data(self) -> dict[frozenset[UUID], int]:
+        # fetch stored inventory updates
+        inventory_updates: Sequence[InventoryBalanceUpdateModel] = self.repo_updater.fetch_data_by_date_interval(
+            start_date=self.start_date,
+            end_date=self.end_date)
+        
+        for update in inventory_updates:
+            key:frozenset[UUID] = frozenset((update.product_id, update.variant_id))
+            item_value: int | None = self._inventory_update_joined.get(key,None)
+            change:int = update.after - update.before
+            if item_value:
+                self._inventory_update_joined[key] = item_value + change
+            else:
+                self._inventory_update_joined[key] = change
+        return self._inventory_update_joined
+    
+class PurchaseDataJoiner:
+    def __init__(self,purchases_fetcher:PurchasesFetcher,start_date:datetime,end_date:datetime):
+        self.purchases_fetcher: PurchasesFetcher = purchases_fetcher
+        self.start_date: datetime =start_date
+        self.end_date:datetime = end_date
+        self._purchases_joined:dict[frozenset[UUID], int ] = {}
+    
+    def join_purchase_update_data(self) -> dict[frozenset[UUID], int]:
+        # fetch stored inventory updates
+        purchases: dict[Any,Any] = self.purchases_fetcher.get_purchases(
+            start_date=self.start_date,
+            end_date=self.end_date,
+        )
+        validated_purchases:ListOfPurchases = ListOfPurchases.model_validate(obj=purchases)
+        
+        for purchases_iter in validated_purchases.purchases:
+            for product_iter in purchases_iter.products:
+                key:frozenset[UUID] = frozenset((product_iter.productUuid, product_iter.variantUuid))
+                item_value: int | None = self._purchases_joined.get(key,None)
+                quantity:int = product_iter.quantity
+                if item_value:
+                    self._purchases_joined[key] = item_value + quantity
+                else:
+                    self._purchases_joined[key] = quantity
+        return self._purchases_joined
+                    
+            
