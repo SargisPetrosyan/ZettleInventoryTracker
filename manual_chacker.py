@@ -1,14 +1,12 @@
-from datetime import datetime, timedelta
-from typing import Sequence
 from uuid import UUID
+
+import rich
 from core.type_dict import Product
-from core.utils import EnvVariablesGetter, InventoryManualChangesChecker, InventoryUpdatesDataJoiner, ManualProductData, PurchaseDataJoiner
+from core.utils import EnvVariablesGetter
+from core.zettle.services import InventoryManualChangesChecker, InventoryUpdatesDataJoiner, ManualProductData, PurchaseDataJoiner
 from core.repositories import InventoryUpdateRepository
 from core.zettle.data_fetchers import ProductDataFetcher, PurchasesFetcher
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
+from datetime import datetime
 
 class InventoryManualDataCollector:
     def __init__(self,repo_updater:InventoryUpdateRepository, purchase_fetcher:PurchasesFetcher) -> None:
@@ -16,12 +14,15 @@ class InventoryManualDataCollector:
         self.repo_updater:InventoryUpdateRepository = repo_updater
         self._purchases_joined_joined:dict[frozenset[UUID], int] = {}
         
-    def get_manual_changed_products(self,hour_interval:int,shop_name:str) -> list[Product]:
+    def get_manual_changed_products(self,shop_name:str) -> list[Product]:
         env_variables_getter = EnvVariablesGetter()
         organization_id: str = env_variables_getter.get_env_variable(variable_name=f"ZETTLE_{shop_name.upper()}_ORGANIZATION_UUID")
 
-        end_date:datetime = datetime.now()
-        start_date:datetime = datetime.now() - timedelta(hours=hour_interval)
+        # end_date:datetime = datetime.now()
+        # start_date:datetime = datetime.now() - timedelta(hours=hour_interval)
+
+        start_date:datetime = datetime(hour=13, day=23, month=12,year=2025)
+        end_date:datetime = datetime(hour=16, day=23, month=12,year=2025)
 
         # inventory update data joining
         inventory_data_joiner = InventoryUpdatesDataJoiner(
@@ -55,7 +56,7 @@ class InventoryManualDataCollector:
             product_data_fetcher=product_data_fetcher)
         
         product_data_with_manual_changes:list[Product] =  product_data_manual.get_manual_changes_product_data()
-
+        rich.print(product_data_with_manual_changes)
         return product_data_with_manual_changes
 
                 

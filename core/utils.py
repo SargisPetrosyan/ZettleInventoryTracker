@@ -1,15 +1,8 @@
-from abc import ABC, abstractmethod
-from datetime import date, datetime, timedelta
+from datetime import  datetime, timedelta
 import json
-from multiprocessing import managers
-from uuid import UUID
 import logging
-from tracemalloc import start
-from typing import Any, Sequence
-import uuid
 from fastapi import Request
 from gspread.worksheet import JSONResponse
-import rich
 from const import MONTH_PRODUCT_STOCK_IN_COL_OFFSET, SHOP_SUBSCRIPTION_EVENTS, WEBHOOK_ENDPOINT_NAME
 from core.google_drive.client import GoogleDriveClient, SpreadSheetClient
 from core.google_drive.drive_manager import GoogleDriveFileManager
@@ -20,12 +13,6 @@ from const import (
     ART_AND_CRAFT,
     CAFE,
 )
-from core.repositories import InventoryUpdateRepository
-from core.type_dict import ListOfProductData, Product
-from core.zettle.data_fetchers import ProductDataFetcher, PurchasesFetcher
-from core.zettle.validation.product_validating import ProductData
-from core.zettle.validation.purchase_validation import ListOfPurchases, Purchases
-from models import InventoryBalanceUpdateModel
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 import os
@@ -62,12 +49,12 @@ class FileName:
 
 
 def check_stock_in_or_out(before: int, after: int, change: int) -> dict[str, int]:
-    logger.info("check if product update stock_in or stock out")
+    logger.info(msg="check if product update stock_in or stock out")
     if before > after:
-        logger.info(f" product is 'stock_out' 'before: {before} > after: {after}'")
+        logger.info(msg=f" product is 'stock_out' 'before: {before} > after: {after}'")
         return {"stock_in": 0, "stock_out": change, "before": before}
     else:
-        logger.info(f" product is 'stock_in' 'before: {before} < after: {after}'")
+        logger.info(msg=f" product is 'stock_in' 'before: {before} < after: {after}'")
         return {"stock_in": change, "stock_out": 0, "before": before}
 
 
@@ -172,102 +159,6 @@ async def json_to_dict(request:Request)-> dict:
     data = json.loads(body)
     data["payload"] = json.loads(data["payload"])
     return data
-
-
-class InventoryUpdatesDataJoiner:
-    def __init__(self,repo_updater:InventoryUpdateRepository,start_date:datetime,end_date:datetime):
-        self.repo_updater:InventoryUpdateRepository = repo_updater
-        self.start_date: datetime =start_date
-        self.end_date:datetime = end_date
-        self._inventory_update_joined:dict[tuple[UUID,UUID], int ] = {}
-    
-    def join_inventory_update_data(self) -> dict[tuple[UUID,UUID], int]:
-        # fetch stored inventory updates
-        inventory_updates: Sequence[InventoryBalanceUpdateModel] = self.repo_updater.fetch_data_by_date_interval(
-            start_date=self.start_date,
-            end_date=self.end_date)
-        
-        for update in inventory_updates:
-            key:tuple[UUID,UUID] = (update.product_id, update.variant_id)
-            item_value: int | None = self._inventory_update_joined.get(key,None)
-            change:int = update.after - update.before
-            if item_value:
-                self._inventory_update_joined[key] = item_value + change
-            else:
-                self._inventory_update_joined[key] = change
-        return self._inventory_update_joined
-    
-class PurchaseDataJoiner:
-    def __init__(self,purchases_fetcher:PurchasesFetcher,start_date:datetime,end_date:datetime):
-        self.purchases_fetcher: PurchasesFetcher = purchases_fetcher
-        self.start_date: datetime =start_date
-        self.end_date:datetime = end_date
-        self._purchases_joined:dict[tuple[UUID,UUID], int ] = {}
-
-    
-    def join_purchase_update_data(self) -> dict[tuple[UUID,UUID], int]:
-        # fetch stored inventory updates
-        purchases: dict[Any,Any] = self.purchases_fetcher.get_purchases(
-            start_date=self.start_date,
-            end_date=self.end_date,
-        )
-        validated_purchases:ListOfPurchases = ListOfPurchases.model_validate(obj=purchases)
-        
-        for purchases_iter in validated_purchases.purchases:
-            for product_iter in purchases_iter.products:
-                key:tuple[UUID,UUID] = (product_iter.productUuid, product_iter.variantUuid)
-                item_value: int | None = self._purchases_joined.get(key,None)
-                quantity:int = product_iter.quantity
-                if item_value:
-                    self._purchases_joined[key] = item_value + quantity
-                else:
-                    self._purchases_joined[key] = quantity
-        return self._purchases_joined
-                    
-
-class InventoryManualChangesChecker:
-    def __init__(
-            self,
-            purchases_merged:dict[tuple[UUID,UUID],int],
-            inventory_update_merged:dict[tuple[UUID,UUID],int]) -> None:
-        
-        self.marge_inventory_update: dict[tuple[UUID,UUID], int] = inventory_update_merged
-        self.marge_purchases_update: dict[tuple[UUID,UUID], int] = purchases_merged
-
-    def get_manual_changes(self) -> dict[tuple[UUID,UUID], int]:
-        for purchase,value in self.marge_purchases_update.items():
-            if purchase in self.marge_inventory_update.keys():
-                self.marge_inventory_update[purchase] = self.marge_inventory_update[purchase] - value
-                if not self.marge_inventory_update[purchase]:
-                    del self.marge_inventory_update[purchase]
-        return self.marge_inventory_update
-            
-
-class ManualProductData:
-    def __init__(self,manual_changes: dict[tuple[UUID,UUID],int],organization_id:str,product_data_fetcher:ProductDataFetcher) -> None:
-        self.manual_changes: dict[tuple[UUID,UUID], int] = manual_changes
-        self.organization_id: str = organization_id
-        self.data_fetcher:ProductDataFetcher = product_data_fetcher
-        self.list_of_products:list[Product] = []
-    
-    def get_manual_changes_product_data(self) -> list[Product]:
-        for key,value in self.manual_changes.items():
-            product_data:dict = self.data_fetcher.get_product_data(product_uuid=str(object=key[0]), organization_id=self.organization_id)
-            validated_product_data:ProductData = ProductData.model_validate(obj=product_data)
-            
-            for variant in validated_product_data.variants:
-                if str(object=variant.uuid) == str(object=key[1]):
-                    category: str | None = validated_product_data.category.name if validated_product_data.category else None
-                    product:Product = {
-                        "name": validated_product_data.name,
-                        "variant_name":variant.name,
-                        "category":category,
-                        "price":variant.price.amount,
-                        "manual_change":value,
-                    }
-                    self.list_of_products.append(product)
-                    
-        return self.list_of_products
 
 
 

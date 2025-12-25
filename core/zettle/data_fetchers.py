@@ -2,8 +2,6 @@ from datetime import datetime
 from typing import Any
 import httpx
 from core.zettle.auth import ZettleCredentialsManager
-from core.zettle.auth import ZettleCredentialsManager
-import os 
 from dotenv import load_dotenv
 
 load_dotenv()

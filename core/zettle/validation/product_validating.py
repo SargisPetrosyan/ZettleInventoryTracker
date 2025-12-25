@@ -8,23 +8,23 @@ class Price(BaseModel):
     currencyId:str
 
 class Options(BaseModel):
-    name:int
+    name:str
     value:str
 
 class Variants(BaseModel):
     uuid: UUID
     name: None | str
     description: str | None
-    barcode: str
+    barcode: str |None
     price: Price
-    costPrice: Price
-    options: list[Options | None]
+    costPrice: Price | None
+    options: list[Options | None] |None
 
 class Properties(BaseModel):
     value:str
 
 class Definitions(BaseModel):
-    name: int
+    name: str
     properties:list[Properties]
 
 class VariantOptionDefinitions(BaseModel):
@@ -44,6 +44,6 @@ class ProductData(BaseModel):
     updated:datetime
     updatedBy: UUID
     created: datetime
-    variantOptionDefinitions:VariantOptionDefinitions
+    variantOptionDefinitions:VariantOptionDefinitions | None
     category: Category | None
 
