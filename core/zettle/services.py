@@ -100,7 +100,7 @@ class InventoryManualChangesChecker:
     def get_manual_changes(self) -> dict[tuple[UUID,UUID], int]:
         for purchase,value in self.marge_purchases_update.items():
             if purchase in self.marge_inventory_update.keys():
-                self.marge_inventory_update[purchase] = self.marge_inventory_update[purchase] - value
+                self.marge_inventory_update[purchase] = self.marge_inventory_update[purchase] + value
                 if not self.marge_inventory_update[purchase]:
                     del self.marge_inventory_update[purchase]
         return self.marge_inventory_update
