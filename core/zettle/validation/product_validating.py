@@ -1,6 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 from pydantic import BaseModel
+from sqlalchemy import Uuid
 
 class Price(BaseModel):
     amount:int
@@ -29,14 +30,20 @@ class Definitions(BaseModel):
 class VariantOptionDefinitions(BaseModel):
     definitions: list[Definitions]
 
+class Category(BaseModel):
+    uuid:UUID
+    name:str
+
 class ProductData(BaseModel):
     uuid: UUID
-    categories: list[None | str]
+    categories: list[ None | str]
+    name: str
     description: str | None
-    variants: list[None | Variants]
+    variants: list[Variants]
     etag:str
     updated:datetime
     updatedBy: UUID
     created: datetime
     variantOptionDefinitions:VariantOptionDefinitions
+    category: Category | None
 

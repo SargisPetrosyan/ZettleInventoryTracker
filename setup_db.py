@@ -7,3 +7,4 @@ class Database:
         self.engine: Engine = create_engine(url="sqlite:///database.db")
         SQLModel.metadata.create_all(bind=self.engine)
     
+

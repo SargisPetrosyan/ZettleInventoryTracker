@@ -1,55 +1,62 @@
 from datetime import datetime, timedelta
 from typing import Sequence
 from uuid import UUID
-
-from numpy import fromregex
-from core.utils import InventoryUpdatesDataJoiner
-import f
-
-from sqlalchemy import Engine
-
+from core.type_dict import Product
+from core.utils import EnvVariablesGetter, InventoryManualChangesChecker, InventoryUpdatesDataJoiner, ManualProductData, PurchaseDataJoiner
 from core.repositories import InventoryUpdateRepository
-from core.zettle.data_fetchers import PurchasesFetcher
-from core.zettle.validation.purchase_validation import ListOfPurchases
-from models import InventoryBalanceUpdateModel
+from core.zettle.data_fetchers import ProductDataFetcher, PurchasesFetcher
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
-class InventoryChangeSourceChecker:
+class InventoryManualDataCollector:
     def __init__(self,repo_updater:InventoryUpdateRepository, purchase_fetcher:PurchasesFetcher) -> None:
-        
         self.purchase_fetcher:PurchasesFetcher = purchase_fetcher
         self.repo_updater:InventoryUpdateRepository = repo_updater
         self._purchases_joined_joined:dict[frozenset[UUID], int] = {}
         
-    def check_manuel_changes(self,hour_interval:int):
+    def get_manual_changed_products(self,hour_interval:int,shop_name:str) -> list[Product]:
+        env_variables_getter = EnvVariablesGetter()
+        organization_id: str = env_variables_getter.get_env_variable(variable_name=f"ZETTLE_{shop_name.upper()}_ORGANIZATION_UUID")
+
         end_date:datetime = datetime.now()
         start_date:datetime = datetime.now() - timedelta(hours=hour_interval)
 
+        # inventory update data joining
         inventory_data_joiner = InventoryUpdatesDataJoiner(
             repo_updater=self.repo_updater,
             start_date=start_date,
             end_date=end_date)
         
-        inventory_data_joined: dict[frozenset[UUID], int] = inventory_data_joiner.join_inventory_update_data()
+        inventory_data_joined: dict[tuple[UUID,UUID], int] = inventory_data_joiner.join_inventory_update_data()
 
-        # fetch purchases by date interval
-        purchase_by_interval = self.purchase_fetcher.get_purchases(
+        # purchases data joining
+        purchases_joiner = PurchaseDataJoiner(
+            purchases_fetcher=self.purchase_fetcher,
             start_date=start_date,
-            end_date=end_date
+            end_date=end_date)
+        
+        purchases_data_merged: dict[tuple[UUID,UUID], int] = purchases_joiner.join_purchase_update_data()
+
+        # minus purchases changes to get manual ones
+        inventory_manual_checker = InventoryManualChangesChecker(
+            inventory_update_merged=inventory_data_joined,
+            purchases_merged=purchases_data_merged,
         )
 
-        validated_purchase = ListOfPurchases(**purchase_by_interval)
+        manual_changes: dict[tuple[UUID,UUID], int] = inventory_manual_checker.get_manual_changes()
 
-        for update in inventory_updates:
-            key:frozenset[UUID] = frozenset((update.product_id, update.variant_id))
-            item_value: int | None = self._inventory_update_joined.get(key,None)
-            change:int = update.after - update.before
-            if item_value:
-                new_value: int = item_value + change
-                self._inventory_update_joined[key] = new_value
-            else:
-                self._inventory_update_joined[key] = change
-            
+        # get product data for manual changes
+        product_data_fetcher:ProductDataFetcher = ProductDataFetcher(shop_name=shop_name) 
+        product_data_manual = ManualProductData(
+            manual_changes=manual_changes,
+            organization_id=organization_id,
+            product_data_fetcher=product_data_fetcher)
+        
+        product_data_with_manual_changes:list[Product] =  product_data_manual.get_manual_changes_product_data()
+
+        return product_data_with_manual_changes
 
                 
  
