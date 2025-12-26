@@ -8,7 +8,7 @@ from core.utils import utc_to_local
 from core.zettle.data_fetchers import ProductDataFetcher, PurchasesFetcher
 from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation,Payload
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from core.zettle.validation.product_validating import ProductData
 from core.zettle.validation.purchase_validation import ListOfPurchases
@@ -74,12 +74,12 @@ class PurchaseDataJoiner:
     def join_purchase_update_data(self) -> dict[tuple[UUID,UUID], int]:
         # fetch stored inventory updates
         purchases: dict[Any,Any] = self.purchases_fetcher.get_purchases(
-            start_date=self.start_date,
-            end_date=self.end_date,
+            start_date=self.start_date - timedelta(hours=1),
+            end_date=self.end_date - timedelta(hours=1),
         )
         
         validated_purchases:ListOfPurchases = ListOfPurchases.model_validate(obj=purchases)
-                
+        rich.print(validated_purchases)
         for purchases_iter in validated_purchases.purchases:
             for product_iter in purchases_iter.products:
                 if purchases_iter.refund:
