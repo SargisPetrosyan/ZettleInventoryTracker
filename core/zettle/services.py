@@ -53,8 +53,7 @@ class InventoryUpdatesDataJoiner:
             item_value: BeforeAfter | None = self._inventory_update_joined.get(key,None)
             change:int = update.after - update.before
             if item_value:
-                self._inventory_update_joined[key]["stock"] =  update.before
-                self._inventory_update_joined[key]["updated_value"] = item_value["stock"] + change
+                self._inventory_update_joined[key]["updated_value"] += change
                 
             else:
                 self._inventory_update_joined[key] = {
@@ -89,7 +88,7 @@ class PurchaseDataJoiner:
                 item_value: int | None = self._purchases_joined.get(key,None)
                 quantity:int = product_iter.quantity
                 if item_value:
-                    self._purchases_joined[key] = item_value + quantity
+                    self._purchases_joined[key] += quantity
                 else:
                     self._purchases_joined[key] = quantity
         return self._purchases_joined
@@ -106,10 +105,10 @@ class InventoryManualChangesChecker:
         self.marge_purchases_update: dict[tuple[UUID,UUID],int] = purchases_merged
 
     def get_manual_changes(self) -> dict[tuple[UUID, UUID], BeforeAfter]:
-        for purchase,value in self.marge_purchases_update.items():
+        for purchase, value in self.marge_purchases_update.items():
             if purchase in self.marge_inventory_update.keys():
                 self.marge_inventory_update[purchase]["updated_value"] = self.marge_inventory_update[purchase]["updated_value"] + value
-                if not self.marge_inventory_update[purchase] == self.marge_inventory_update[purchase]["updated_value"]:
+                if self.marge_inventory_update[purchase]["stock"] == self.marge_inventory_update[purchase]["updated_value"]:
                     del self.marge_inventory_update[purchase]
         return self.marge_inventory_update
             

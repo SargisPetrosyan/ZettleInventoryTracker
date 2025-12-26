@@ -93,8 +93,8 @@ class WebhookSubscriptionClient(WebhookManager):
         url=f'https://pusher.izettle.com/organizations/self/subscriptions/{self.credential_context.subscription_uuid}',
         headers={
             'Authorization': f'Bearer {access_token}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
         },
         json=data)
 
-        logger.info(f"updated Dala shop subscription{response.json()}")
+        logger.info(msg=f"updated Dala shop subscription{response.json()}")

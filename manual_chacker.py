@@ -25,7 +25,7 @@ class InventoryManualDataCollector:
         # start_date:datetime = datetime.now() - timedelta(hours=hour_interval)
 
         start_date:datetime = datetime(hour=11, day=26, month=12,year=2025)
-        end_date:datetime = datetime(hour=13, day=26, month=12,year=2025)
+        end_date:datetime = datetime(hour=17, day=26, month=12,year=2025)
 
         inventory_updates: Sequence[InventoryBalanceUpdateModel] = self.repo_updater.fetch_data_by_date_interval(
             start_date=start_date,
