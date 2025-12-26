@@ -9,7 +9,6 @@ class Products(BaseModel):
     unitPrice: int
     name:str 
     variantName:str
-    barcode:str
 
 
 class Purchases(BaseModel):

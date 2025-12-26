@@ -70,10 +70,10 @@ class DayWorksheetProductWriter:
         self.worksheet: Worksheet = worksheet
 
     def add_new_product(self, context: Context) -> None:
-        new_row: list[str | int] = [
-            context.product_data.name,
-            context.product_data.category,
-            context.stock_in_out.before,
+        new_row: list[str | int | None] = [
+            context.inventory_manual_update["name"],
+            context.inventory_manual_update["category"],
+            context.inventory_manual_update["stock"],
         ]
         self.worksheet.append_row(values=new_row)
         return
@@ -165,9 +165,9 @@ class MonthWorksheetProductWriter:
         if not first_element[0]:
             self.worksheet.append_row(
                 values=[
-                    context.product_data.name,
-                    context.product_data.category,
-                    context.product_update.payload.inventory.before,
+                    context.inventory_manual_update["name"],
+                    context.inventory_manual_update["category"],
+                    context.inventory_manual_update["before"],
                 ],
                 table_range=MONTH_PRODUCT_DATA_CELL_RANGE,
             )

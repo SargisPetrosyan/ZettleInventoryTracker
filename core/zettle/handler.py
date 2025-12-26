@@ -1,3 +1,4 @@
+import datetime
 import logging
 from os import name
 
@@ -19,6 +20,7 @@ from core.google_drive.services import (
     YearFolderExistenceEnsurer,
     DayWorksheetValueUpdater,
 )
+from core.type_dict import Product
 from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation
 from core.zettle.validation.product_validating import ProductData
 import json
@@ -31,7 +33,7 @@ with open("data/Product.json", "r") as fp:
     PRODUCT_UPDATE = json.load(fp)
 
 
-class ZettleWebhookHandlerOld:
+class DriveManager:
     def __init__(
         self,
         google_drive_file_manager: GoogleDriveFileManager,
@@ -57,13 +59,11 @@ class ZettleWebhookHandlerOld:
             spreadsheet_file_manager=self.spreadsheet_file_manager
         )
 
-    def process_webhook(self, request: InventoryBalanceUpdateValidation) -> None:
-        product_data = ProductData(**PRODUCT_UPDATE)
+    def process_data_to_drive(self, product: Product) -> None:
 
         context = Context(
-            date=request.payload.updated.timestamp,
-            inventory_balance_update=request,
-            product_data=product_data,
+            date=datetime.datetime.now(),
+            inventory_manual_update=product,
         )
 
         # step 1 ensure year folder:

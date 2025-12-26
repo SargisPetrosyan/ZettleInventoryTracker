@@ -7,6 +7,7 @@ from const import MONTH_PRODUCT_STOCK_IN_COL_OFFSET, SHOP_SUBSCRIPTION_EVENTS, W
 from core.google_drive.client import GoogleDriveClient, SpreadSheetClient
 from core.google_drive.drive_manager import GoogleDriveFileManager
 from core.google_drive.sheet_manager import SpreadSheetFileManager
+from datetime import datetime, timezone
 import os
 from const import (
     DALA_SHOP,
@@ -160,5 +161,5 @@ async def json_to_dict(request:Request)-> dict:
     data["payload"] = json.loads(data["payload"])
     return data
 
-
-
+def utc_to_local(utc_dt:datetime) -> datetime:
+    return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)

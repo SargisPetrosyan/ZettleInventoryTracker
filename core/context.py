@@ -1,4 +1,6 @@
 import logging
+
+from core.type_dict import Product
 logger: logging.Logger = logging.getLogger(name=__name__)
 
 import logging
@@ -14,8 +16,7 @@ class Context:
     def __init__(
         self,
         date: datetime,
-        inventory_balance_update: InventoryBalanceUpdateValidation,
-        product_data: ProductData,
+        inventory_manual_update: Product,
     ) -> None:
         
         self._parent_folder_id: str | None = None
@@ -23,9 +24,7 @@ class Context:
         self._day_spreadsheet_id: str | None = None
         self._month_spreadsheet_id: str | None = None
         self.name = FileName(date=date)
-        self.product_update: InventoryBalanceUpdateValidation = inventory_balance_update
-        self.product_data: ProductData = product_data
-        self.stock_in_out = StockInOrOut(product_update=self.product_update)
+        self.inventory_manual_update: Product = inventory_manual_update
 
     @property
     def parent_folder_id(self) -> str:
