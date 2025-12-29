@@ -1,7 +1,6 @@
-from datetime import datetime
 from uuid import UUID
 from pydantic import BaseModel
-from sqlalchemy import Uuid
+
 
 class Price(BaseModel):
     amount:int

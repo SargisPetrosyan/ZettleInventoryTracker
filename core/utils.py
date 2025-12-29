@@ -23,7 +23,7 @@ load_dotenv()
 
 class EnvVariablesGetter:
     def get_env_variable(self,variable_name:str) -> str:
-        variable: str | None = os.getenv(variable_name)
+        variable: str | None = os.getenv(key=variable_name)
 
         if not variable:
             raise TypeError(f"env variable by name '{variable_name}' cant be NONE ")
@@ -43,20 +43,10 @@ class FileName:
         self.month_file_name: str = str(object=date.strftime("%B"))
         self.day_file_name: str = f"{self.year}-{self.month}-{self.month_file_name}"
         self.month_worksheet_name: str = self.day_file_name
-        self.monthly_report_name: str = f"{self.year}-monthly report"
+        self.monthly_report_file_name: str = f"{self.year}-monthly report"
         self.month_stock_in_and_out_col_index: int = int(self.day) + MONTH_PRODUCT_STOCK_IN_COL_OFFSET
         self.month_stock_out_row_index:int = int(self.day) + 1
         logger.info(f"file name was created 'file_name: {self.day_file_name}'")
-
-
-def check_stock_in_or_out(before: int, after: int, change: int) -> dict[str, int]:
-    logger.info(msg="check if product update stock_in or stock out")
-    if before > after:
-        logger.info(msg=f" product is 'stock_out' 'before: {before} > after: {after}'")
-        return {"stock_in": 0, "stock_out": change, "before": before}
-    else:
-        logger.info(msg=f" product is 'stock_in' 'before: {before} < after: {after}'")
-        return {"stock_in": change, "stock_out": 0, "before": before}
 
 
 def sheet_exist(items: dict[str, int], sheet_name: str) -> int | None:
@@ -64,7 +54,6 @@ def sheet_exist(items: dict[str, int], sheet_name: str) -> int | None:
         if sheet == sheet_name:
             return index
     return None
-
 
 def get_row_from_response(response: JSONResponse) -> int:
     product_update_data: str = response["updates"]["updatedRange"]

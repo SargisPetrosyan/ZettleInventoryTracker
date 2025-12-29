@@ -1,13 +1,12 @@
-import datetime
-import logging
-from os import name
 
 from core.context import Context
 from core.google_drive.drive_manager import GoogleDriveFileManager
 from core.google_drive.sheet_manager import (
     SpreadSheetFileManager,
 )
-from const import DAY_TEMPLATE_ID, MONTHLY_TEMPLATE_ID
+from const import (
+    DAY_TEMPLATE_ID, 
+    MONTHLY_TEMPLATE_ID)
 from gspread.spreadsheet import Spreadsheet
 from gspread.worksheet import Worksheet
 from core.google_drive.services import (
@@ -20,17 +19,10 @@ from core.google_drive.services import (
     YearFolderExistenceEnsurer,
     DayWorksheetValueUpdater,
 )
-from core.type_dict import Product
-from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation
-from core.zettle.validation.product_validating import ProductData
-import json
+from core.dataclass import Product
 import logging
 
 logger: logging.Logger = logging.getLogger(name=__name__)
-
-
-with open("data/Product.json", "r") as fp:
-    PRODUCT_UPDATE = json.load(fp)
 
 
 class DriveManager:
@@ -38,7 +30,7 @@ class DriveManager:
         self,
         google_drive_file_manager: GoogleDriveFileManager,
         spreadsheet_file_manager: SpreadSheetFileManager,
-    ) -> None:
+        ) -> None:
         self.google_drive_file_manager: GoogleDriveFileManager = (
             google_drive_file_manager
         )

@@ -55,13 +55,13 @@ class YearFolderExistenceEnsurer:
             monthly_report_spreadsheet: Spreadsheet = (
                 self.spreadsheet_file_manager.copy_spreadsheet(
                     spreadsheet_id=MONTHLY_TEMPLATE_ID,
-                    title=context.name.monthly_report_name,
+                    title=context.name.monthly_report_file_name,
                     folder_id=year_folder_id,
                 )
             )
 
             logger.info(
-                f"monthly_report_spreadsheet, rename template names from 'WORKSHEET_SAMPLE_NAME to {context.name.monthly_report_name}'"
+                f"monthly_report_spreadsheet, rename template names from 'WORKSHEET_SAMPLE_NAME to {context.name.monthly_report_file_name}'"
             )
 
             worksheet = monthly_report_spreadsheet.worksheet(
@@ -152,7 +152,7 @@ class MonthSpreadsheetExistenceEnsurer:
             raise ValueError("year folder id not exist check YearFolderEnsurer")
 
         spreadsheet_id: str | None = self.drive_file_manager.get_spreadsheet_id_by_name(
-            spreadsheet_name=context.name.monthly_report_name,
+            spreadsheet_name=context.name.monthly_report_file_name,
             parent_folder_id=context.year_folder_id,
             page_size=100,
         )

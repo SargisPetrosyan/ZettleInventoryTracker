@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Any
-from uuid import UUID
 import httpx
 from core.zettle.auth import ZettleCredentialsManager
 from dotenv import load_dotenv
@@ -31,7 +30,6 @@ class PurchasesFetcher:
 class ProductDataFetcher:
     def __init__(self, shop_name:str,) -> None:
         self.creds_manager: ZettleCredentialsManager = ZettleCredentialsManager(shop_name=shop_name)
-        
 
     def get_product_data(self,product_uuid:str, organization_id:str)  -> dict:
         access_token: str = self.creds_manager.get_access_token()

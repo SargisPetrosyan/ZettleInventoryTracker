@@ -1,9 +1,5 @@
-from ast import Dict
-from blinker import ANY
 from fastapi import FastAPI, Request
 import logging
-import json
-import rich
 from core.utils import json_to_dict
 from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation
 import data

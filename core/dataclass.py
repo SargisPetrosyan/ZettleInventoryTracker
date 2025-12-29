@@ -21,13 +21,13 @@ class Product():
         if not self._category_name:
             return 'None'
         return self._category_name.name
-
+    
 
 class ListOfProductData(TypedDict):
     list_of_products: dict[tuple[UUID,UUID], list[Product]]
 
 @dataclass
-class BeforeAfter():
+class InventoryUpdateData():
     stock:int
     updated_value:int
     timestamp:datetime

@@ -31,14 +31,14 @@ class ZettleTokenChecker:
             logger.info("zettle access token is not valid ")
             return False
 
-        logger.info("zettle access token is valid ")
+        logger.info(msg="zettle access token is valid ")
         return True
     
     def token_file_exist(self) -> bool:
         return os.path.exists(path=self._token_path)
     
-    def _get_token_file(self)->dict[str,Any]:
-        logger.info("get access token file ")
+    def _get_token_file(self) -> dict[str,Any]:
+        logger.info(msg="get access token file ")
         with open(file=self._token_path,mode='r',encoding='utf-8') as f:
             file:dict = json.load(fp=f)
         return file

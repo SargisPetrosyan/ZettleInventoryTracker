@@ -1,7 +1,6 @@
-from datetime import datetime
 import logging
 
-from core.type_dict import Product
+from core.dataclass import Product
 from core.utils import FileName
 from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation
 
@@ -52,7 +51,6 @@ class Context:
             return "None"
         return self.product_inventory_update.category
 
-    
     @property
     def variant(self) -> str:
         if not self.product_inventory_update.variant_name:
@@ -90,24 +88,3 @@ class Context:
     @month_spreadsheet_id.setter
     def month_spreadsheet_id(self, id: str) -> None:
         self._month_spreadsheet_id = id
-
-
-class StockInOrOut:
-    def __init__(self, product_update: InventoryBalanceUpdateValidation) -> None:
-        self.stock_in: int = 0
-        self.stock_out: int = 0
-        self.change: int = 0
-        self.before: int = 0
-
-        logger.info("check if product update stock_in or stock out")
-        before: int = product_update.payload.balanceBefore[0].balance
-        after: int = product_update.payload.balanceAfter[0].balance
-        change: int = abs(before) 
-        if product_update.payload.inventory.before > product_update.payload.inventory.after: #type:ignore
-            logger.info(f" product is 'stock_out' 'before: {before} > after: {after}'")
-            self.stock_out: int = change
-            self.before: int = before
-        else:
-            logger.info(f" product is 'stock_in' 'before: {before} < after: {after}'")
-            self.stock_in: int = change
-            self.before: int = before
