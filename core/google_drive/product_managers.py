@@ -70,12 +70,13 @@ class DayWorksheetProductWriter:
         self.worksheet: Worksheet = worksheet
 
     def add_new_product(self, context: Context) -> None:
+        context.product_inventory_update.category
         new_row: list[str | int | None] = [
-            context.inventory_manual_update["name"],
-            context.inventory_manual_update["category"],
-            context.inventory_manual_update["stock"],
+            context.product_inventory_update.name,
+            context.product_inventory_update.category,
+            context.product_inventory_update.stock,
         ]
-        self.worksheet.append_row(values=new_row)
+        self.worksheet.append_row(values=new_row) #type:ignore
         return
 
     def update_stock_in(
@@ -162,12 +163,13 @@ class MonthWorksheetProductWriter:
         first_element: ValueRange | List[List[str]] = self.worksheet.get(
             range_name=MONTH_WORKSHEET_FIRST_CELL
         )
+        
         if not first_element[0]:
             self.worksheet.append_row(
                 values=[
-                    context.inventory_manual_update["name"],
-                    context.inventory_manual_update["category"],
-                    context.inventory_manual_update["before"],
+                    context.product_inventory_update.name,
+                    context.product_inventory_update.category,
+                    context.product_inventory_update.stock,
                 ],
                 table_range=MONTH_PRODUCT_DATA_CELL_RANGE,
             )
@@ -175,9 +177,9 @@ class MonthWorksheetProductWriter:
         else:
             self.worksheet.append_row(
                 values=[
-                    context.product_data.name,
-                    context.product_data.category,
-                    context.product_update.payload.inventory.before,
+                    context.product_inventory_update.name,
+                    context.product_inventory_update.category,
+                    context.product_inventory_update.stock,
                 ]
             )
 

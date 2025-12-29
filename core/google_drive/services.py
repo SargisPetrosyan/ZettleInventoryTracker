@@ -34,7 +34,7 @@ class YearFolderExistenceEnsurer:
 
     def ensure_year_folder(self, context: Context) -> None:
         logger.info(msg=f"check if 'year: {context.name.year}' folder exist")
-        parent_folder_id: str | None = SHOP_ID[str(context.product_update.organizationUuid)]
+        parent_folder_id: str | None = SHOP_ID[str(context.product_inventory_update.organization_id)]
 
         year_folder_id: str | None = self.drive_file_manager.folder_exist_by_name(
             folder_name=context.name.year_folder_name,
@@ -208,11 +208,11 @@ class DayProductExistenceEnsurer:
 
     def ensure_day_product(self, context: Context) -> None:
         product_exist: int | None = self.day_worksheet_reader.product_exist(
-            product_name=context.product_data.name
+            product_name=context.product_inventory_update.name
         )
         if not product_exist:
             logger.info(
-                msg=f"product by name '{context.product_data.name}' doesn't exist creating new"
+                msg=f"product by name '{context.product_inventory_update.name}' doesn't exist creating new"
             )
             self.day_worksheet_writer.add_new_product(context=context)
             return None
@@ -229,11 +229,11 @@ class MonthProductExistenceEnsurer:
 
     def ensure_month_product(self, context: Context) -> int | None:
         product_exist: int | None = self.month_worksheet_reader.product_exist(
-            product_name=context.product_data.name
+            product_name=context.product_inventory_update.name
         )
         if not product_exist:
             logger.info(
-                f"product by name '{context.product_data.name}' doesn't exist creating new"
+                f"product by name '{context.product_inventory_update.name}' doesn't exist creating new"
             )
             self.month_worksheet_writer.add_new_product(context=context)
             return
@@ -246,33 +246,33 @@ class DayWorksheetValueUpdater:
         day_worksheet_writer: DayWorksheetProductWriter,
         day_worksheet_reader: DayWorksheetProductReader,
     ) -> None:
-        logger.info(msg=f"product by name '{context.product_data.name}' was found ")
+        logger.info(msg=f"product by name '{context.product_inventory_update.name}' was found ")
 
-        if context.stock_in_out.stock_in:
+        if context.stock_in_or_out > 0:
             logger.info(msg="update stock in in worksheets")
             product_row: int = day_worksheet_reader.get_product_row_by_name(
-                product_name=context.product_data.name
+                product_name=context.product_inventory_update.name
             )
             old_stock_in: int = day_worksheet_reader.get_product_stock_in(
                 product_row=product_row
             )
             day_worksheet_writer.update_stock_in(
                 old_stock_in=old_stock_in,
-                amount=context.stock_in_out.stock_in,
+                amount=context.stock_in_or_out,
                 row=product_row,
             )
 
-        elif context.stock_in_out.stock_out:
+        if context.stock_in_or_out < 0:
             logger.info(msg="update stock in in worksheets")
             product_row: int = day_worksheet_reader.get_product_row_by_name(
-                product_name=context.product_data.name
+                product_name=context.product_inventory_update.name
             )
             old_stock_out: int = day_worksheet_reader.get_product_stock_out(
                 product_row=product_row
             )
             day_worksheet_writer.update_stock_out(
                 old_stock_out=old_stock_out,
-                amount=context.stock_in_out.stock_out,
+                amount=context.stock_in_or_out,
                 row=product_row,
             )
 
@@ -284,13 +284,13 @@ class MonthWorksheetValueUpdater:
         month_worksheet_writer: MonthWorksheetProductWriter,
         month_worksheet_reader: MonthWorksheetProductReader,
     ) -> None:
-        logger.info(msg=f"product by name '{context.product_data.name}' was found ")
+        logger.info(msg=f"product by name '{context.product_inventory_update.name}' was found ")
 
-        if context.stock_in_out.stock_in:
+        if context.stock_in_or_out > 0:
             logger.info(msg="update stock in in worksheets")
 
             product_row: int = month_worksheet_reader.get_product_row_by_name(
-                product_name=context.product_data.name
+                product_name=context.product_inventory_update.name
             )
             old_stock_in: int = month_worksheet_reader.get_product_stock_in(
                 product_row=product_row,
@@ -299,15 +299,15 @@ class MonthWorksheetValueUpdater:
 
             month_worksheet_writer.update_stock_in(
                 old_stock_in=old_stock_in,
-                amount=context.stock_in_out.stock_in,
+                amount=context.stock_in_or_out,
                 row=product_row,
                 col=context.name.month_stock_in_and_out_col_index,
             )
 
-        elif context.stock_in_out.stock_out:
+        elif context.stock_in_or_out < 0:
             logger.info(msg="update stock in in worksheets")
             stock_out_row: int = month_worksheet_reader.get_product_stock_out_row(
-                product_name=context.product_data.name
+                product_name=context.product_inventory_update.name
             )
             old_stock_out: int = month_worksheet_reader.get_product_stock_out(
                 product_row=stock_out_row,
@@ -315,7 +315,7 @@ class MonthWorksheetValueUpdater:
             )
             month_worksheet_writer.update_stock_out(
                 old_stock_out=old_stock_out,
-                amount=context.stock_in_out.stock_out,
+                amount=context.stock_in_or_out,
                 row=stock_out_row,
                 col=context.name.month_stock_in_and_out_col_index,
             )

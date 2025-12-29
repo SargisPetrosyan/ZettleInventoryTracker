@@ -1,21 +1,16 @@
+from datetime import datetime
 import logging
 
 from core.type_dict import Product
-logger: logging.Logger = logging.getLogger(name=__name__)
-
-import logging
-
 from core.utils import FileName
-from datetime import datetime
-
 from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation
-from core.zettle.validation.product_validating import ProductData
+
+logger: logging.Logger = logging.getLogger(name=__name__)
 
 
 class Context:
     def __init__(
         self,
-        date: datetime,
         inventory_manual_update: Product,
     ) -> None:
         
@@ -23,8 +18,8 @@ class Context:
         self._year_folder_id: str | None = None
         self._day_spreadsheet_id: str | None = None
         self._month_spreadsheet_id: str | None = None
-        self.name = FileName(date=date)
-        self.inventory_manual_update: Product = inventory_manual_update
+        self.name:FileName = FileName(date=self.product_inventory_update.timestamp)
+        self.product_inventory_update: Product = inventory_manual_update
 
     @property
     def parent_folder_id(self) -> str:
@@ -49,6 +44,36 @@ class Context:
         if not self._month_spreadsheet_id:
             raise TypeError("month_spreadsheet_id cant be NONE")
         return self._month_spreadsheet_id
+    
+    @property
+    def category(self) -> str:
+        if not self.product_inventory_update.category:
+            logger.info("category is NONE")
+            return "None"
+        return self.product_inventory_update.category
+
+    
+    @property
+    def variant(self) -> str:
+        if not self.product_inventory_update.variant_name:
+            logger.info("variant is NONE")
+            return "None"
+        return self.product_inventory_update.variant_name
+    
+    @property
+    def stock_in_or_out(self) -> int:
+        if self.product_inventory_update.manual_change > 0:
+            logger.info("product inventory change is stock in")
+            return self.product_inventory_update.manual_change
+        logger.info("product inventory change is stock out")
+        return self.product_inventory_update.manual_change
+    
+    @property
+    def price(self) -> int:
+        if not self.product_inventory_update.price:
+            raise TypeError("price timestamp cant be NONE")
+        return self.product_inventory_update.price // 100 #in zettle value has 2 extra 00 digits
+
 
     @parent_folder_id.setter
     def parent_folder_id(self, id: str) -> None:

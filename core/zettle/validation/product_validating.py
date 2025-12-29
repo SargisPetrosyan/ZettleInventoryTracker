@@ -12,8 +12,10 @@ class Options(BaseModel):
     value:str
 
 class Variants(BaseModel):
-    uuid: UUID
+    variant_id: UUID
+    product_id: UUID
     name: None | str
+    organization_id: UUID
     price: Price
 
 class Category(BaseModel):

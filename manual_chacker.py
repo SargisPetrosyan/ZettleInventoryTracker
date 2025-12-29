@@ -1,5 +1,6 @@
 from typing import Sequence
 from uuid import UUID
+import uuid
 
 import rich
 from core.type_dict import BeforeAfter, Product
@@ -19,7 +20,7 @@ class InventoryManualDataCollector:
         
     def get_manual_changed_products(self,shop_name:str) -> list[Product] | None:
         env_variables_getter = EnvVariablesGetter()
-        organization_id: str = env_variables_getter.get_env_variable(variable_name=f"ZETTLE_{shop_name.upper()}_ORGANIZATION_UUID")
+        organization_id: str = str(uuid.UUID(env_variables_getter.get_env_variable(variable_name=f"ZETTLE_{shop_name.upper()}_ORGANIZATION_UUID")))
 
         # end_date:datetime = datetime.now()
         # start_date:datetime = datetime.now() - timedelta(hours=hour_interval)

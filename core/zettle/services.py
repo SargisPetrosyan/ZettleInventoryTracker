@@ -53,14 +53,14 @@ class InventoryUpdatesDataJoiner:
             item_value: BeforeAfter | None = self._inventory_update_joined.get(key,None)
             change:int = update.after - update.before
             if item_value:
-                self._inventory_update_joined[key]["updated_value"] += change
+                self._inventory_update_joined[key].updated_value += change
                 
             else:
-                self._inventory_update_joined[key] = {
-                    "stock":update.before,
-                    "updated_value":update.after,
-                    "timestamp":update.timestamp,
-                    }
+                self._inventory_update_joined[key] = BeforeAfter(
+                    stock=update.before,
+                    updated_value=update.after,
+                    timestamp=update.timestamp,
+                )
         return self._inventory_update_joined
     
 class PurchaseDataJoiner:
@@ -107,8 +107,8 @@ class InventoryManualChangesChecker:
     def get_manual_changes(self) -> dict[tuple[UUID, UUID], BeforeAfter]:
         for purchase, value in self.marge_purchases_update.items():
             if purchase in self.marge_inventory_update.keys():
-                self.marge_inventory_update[purchase]["updated_value"] = self.marge_inventory_update[purchase]["updated_value"] + value
-                if self.marge_inventory_update[purchase]["stock"] == self.marge_inventory_update[purchase]["updated_value"]:
+                self.marge_inventory_update[purchase].updated_value = self.marge_inventory_update[purchase].updated_value + value
+                if self.marge_inventory_update[purchase].stock == self.marge_inventory_update[purchase].updated_value:
                     del self.marge_inventory_update[purchase]
         return self.marge_inventory_update
             
@@ -131,17 +131,17 @@ class ManualProductData:
             validated_product_data:ProductData = ProductData.model_validate(obj=product_data)
             
             for variant in validated_product_data.variants:
-                if str(object=variant.uuid) == str(object=key[1]):
-                    category: str | None = validated_product_data.category.name if validated_product_data.category else None
-                    product:Product = {
-                        "name": validated_product_data.name,
-                        "variant_name":variant.name,
-                        "category":category,
-                        "price":variant.price.amount,
-                        "manual_change":value["updated_value"],
-                        "stock":value["stock"],
-                        "timestamp": value["timestamp"]
-                    }
+                if (variant.product_id,variant.variant_id) == key:
+                    product:Product = Product(
+                        name=validated_product_data.name,
+                        variant_name=variant.name,
+                        _category_name=validated_product_data.category,
+                        price=variant.price.amount,
+                        manual_change=value.updated_value,
+                        stock=value.stock,
+                        timestamp= value.timestamp,
+                        organization_id=self.organization_id
+                    )
                     self.list_of_products.append(product)
                     
         return self.list_of_products

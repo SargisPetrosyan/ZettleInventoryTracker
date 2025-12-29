@@ -61,10 +61,7 @@ class DriveManager:
 
     def process_data_to_drive(self, product: Product) -> None:
 
-        context = Context(
-            date=datetime.datetime.now(),
-            inventory_manual_update=product,
-        )
+        context = Context(inventory_manual_update=product)
 
         # step 1 ensure year folder:
         self.year_folder_manager.ensure_year_folder(context=context)
