@@ -2,8 +2,6 @@ import datetime
 from sqlmodel import Field, SQLModel, DateTime
 import uuid
 
-
-
 class InventoryBalanceUpdateModel(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     timestamp:datetime.datetime = Field(default_factory=DateTime)

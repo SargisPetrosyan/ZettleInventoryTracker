@@ -8,7 +8,6 @@ from core.zettle.data_fetchers import ProductDataFetcher, PurchasesFetcher
 from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation,Payload
 import logging
 from datetime import datetime, timedelta
-
 from core.zettle.validation.product_validating import ProductData
 from core.zettle.validation.purchase_validation import ListOfPurchases
 from models import InventoryBalanceUpdateModel 
@@ -24,7 +23,7 @@ class InventoryBalanceUpdater:
         list_of_updates:list[InventoryBalanceUpdateModel] = []
         for i in range(len(self.inventory_balance_update.payload.balanceBefore)):
             payload: Payload = self.inventory_balance_update.payload
-            local_timezone: datetime = utc_to_local(payload.updated.timestamp)
+            local_timezone: datetime = utc_to_local(utc_dt=payload.updated.timestamp)
             object = InventoryBalanceUpdateModel(
                 timestamp=local_timezone,
                 shop_id=payload.organizationUuid,
@@ -83,9 +82,8 @@ class PurchaseDataJoiner:
                 if purchases_iter.refund:
                     continue 
                 key:tuple[UUID,UUID] = (product_iter.productUuid, product_iter.variantUuid)
-                item_value: int | None = self._purchases_joined.get(key,None)
                 quantity:int = product_iter.quantity
-                if item_value:
+                if not key in self._purchases_joined:
                     self._purchases_joined[key] += quantity
                 else:
                     self._purchases_joined[key] = quantity
@@ -153,17 +151,18 @@ class InventoryManualDataCollector:
         self.variable_getter:EnvVariablesGetter = EnvVariablesGetter()
         self.end_date:datetime = datetime.now()
         self.start_date:datetime = self.end_date - timedelta(hours=time_interval_hour)
+        self.shop_name: str = shop_name
         
-    def get_manual_changed_products(self,shop_name:str) -> list[Product] | None:
+    def get_manual_changed_products(self) -> list[Product] | None:
         self.variable_getter = EnvVariablesGetter()
         organization_id: str = str(object=UUID(hex=self.variable_getter.\
-            get_env_variable(variable_name=f"ZETTLE_{shop_name.upper()}_ORGANIZATION_UUID")))
+            get_env_variable(variable_name=f"ZETTLE_{self.shop_name.upper()}_ORGANIZATION_UUID")))
 
-        # end_date:datetime = datetime.now()
-        # start_date:datetime = datetime.now() - timedelta(hours=hour_interval)
+        end_date:datetime = datetime.now()
+        start_date:datetime = datetime.now() - timedelta(hours=5)
 
-        start_date:datetime = datetime(second = 40, minute=32, hour=16, day=26, month=12,year=2025)
-        end_date:datetime = datetime(second=18,minute=25, hour=17, day=26, month=12,year=2025)
+        # start_date:datetime = datetime(hour=10, day=3, month=1,year=2026)
+        # end_date:datetime = datetime( hour=19, day=3, month=1,year=2026)
 
         #fetch inventory data from database
         inventory_updates: Sequence[InventoryBalanceUpdateModel] = self.repo_updater.fetch_data_by_date_interval(
@@ -204,7 +203,7 @@ class InventoryManualDataCollector:
         manual_changes: dict[tuple[UUID,UUID], InventoryUpdateData] = inventory_manual_checker.get_manual_changes()
 
         # get product data for manual changes
-        product_data_fetcher:ProductDataFetcher = ProductDataFetcher(shop_name=shop_name) 
+        product_data_fetcher:ProductDataFetcher = ProductDataFetcher(shop_name=self.shop_name) 
         product_data_manual = ManualProductData(
             manual_changes=manual_changes,
             organization_id=organization_id,

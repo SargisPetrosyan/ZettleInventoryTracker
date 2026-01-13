@@ -8,6 +8,7 @@ from core.google_drive.client import GoogleDriveClient, SpreadSheetClient
 from core.google_drive.drive_manager import GoogleDriveFileManager
 from core.google_drive.sheet_manager import SpreadSheetFileManager
 from datetime import datetime, timezone
+import pytz
 import os
 from const import (
     DALA_SHOP,
@@ -29,7 +30,6 @@ class EnvVariablesGetter:
             raise TypeError(f"env variable by name '{variable_name}' cant be NONE ")
         
         return variable
-
 
 
 class FileName:
