@@ -1,5 +1,6 @@
 from typing import Any, Sequence
 from uuid import UUID
+import rich
 from sqlalchemy import Engine
 from core.repositories import InventoryUpdateRepository
 from core.dataclass import InventoryUpdateData, Product
@@ -7,7 +8,7 @@ from core.utils import EnvVariablesGetter, utc_to_local
 from core.zettle.data_fetchers import ProductDataFetcher, PurchasesFetcher
 from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation,Payload
 import logging
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from core.zettle.validation.product_validating import ProductData
 from core.zettle.validation.purchase_validation import ListOfPurchases
 from models import InventoryBalanceUpdateModel 
@@ -83,10 +84,10 @@ class PurchaseDataJoiner:
                     continue 
                 key:tuple[UUID,UUID] = (product_iter.productUuid, product_iter.variantUuid)
                 quantity:int = product_iter.quantity
-                if not key in self._purchases_joined:
-                    self._purchases_joined[key] += quantity
-                else:
+                if key not in self._purchases_joined:
                     self._purchases_joined[key] = quantity
+                else:
+                    self._purchases_joined[key] += quantity
         return self._purchases_joined
                     
 
@@ -123,7 +124,11 @@ class ManualProductData:
     
     def get_manual_changes_product_data(self) -> list[Product]:
         for key,value in self.manual_changes.items():
-            product_data:dict = self.data_fetcher.get_product_data(product_uuid=str(object=key[0]), organization_id=self.organization_id)
+            product_data:dict = self.data_fetcher.get_product_data(
+                product_uuid=str(object=key[0]), 
+                organization_id=self.organization_id)
+            
+            rich.print(product_data)
             validated_product_data:ProductData = ProductData.model_validate(obj=product_data)
             
             for variant in validated_product_data.variants:
@@ -144,30 +149,30 @@ class ManualProductData:
 
 
 class InventoryManualDataCollector:
-    def __init__(self,repo_updater:InventoryUpdateRepository, shop_name:str, time_interval_hour:int = 1) -> None:
+    def __init__(
+            self,repo_updater:InventoryUpdateRepository, 
+            shop_name:str, 
+            start_date:datetime, 
+            end_date:datetime) -> None:
+        
         self.purchase_fetcher:PurchasesFetcher = PurchasesFetcher(shop_name=shop_name)
         self.repo_updater:InventoryUpdateRepository = repo_updater
         self._purchases_joined_joined:dict[frozenset[UUID], int] = {}
         self.variable_getter:EnvVariablesGetter = EnvVariablesGetter()
         self.end_date:datetime = datetime.now()
-        self.start_date:datetime = self.end_date - timedelta(hours=time_interval_hour)
         self.shop_name: str = shop_name
-        
+        self.start_date: datetime = start_date
+        self.end_date:datetime = end_date
+
     def get_manual_changed_products(self) -> list[Product] | None:
         self.variable_getter = EnvVariablesGetter()
         organization_id: str = str(object=UUID(hex=self.variable_getter.\
             get_env_variable(variable_name=f"ZETTLE_{self.shop_name.upper()}_ORGANIZATION_UUID")))
 
-        end_date:datetime = datetime.now()
-        start_date:datetime = datetime.now() - timedelta(hours=5)
-
-        # start_date:datetime = datetime(hour=10, day=3, month=1,year=2026)
-        # end_date:datetime = datetime( hour=19, day=3, month=1,year=2026)
-
         #fetch inventory data from database
         inventory_updates: Sequence[InventoryBalanceUpdateModel] = self.repo_updater.fetch_data_by_date_interval(
-            start_date=start_date,
-            end_date=end_date)
+            start_date=self.start_date,
+            end_date=self.end_date)
         
         if not inventory_updates:
             return None
@@ -175,15 +180,15 @@ class InventoryManualDataCollector:
         # inventory update data joining
         inventory_data_joiner = InventoryUpdatesDataJoiner(
             inventory_changes=inventory_updates,
-            start_date=start_date,
-            end_date=end_date)
+            start_date=self.start_date,
+            end_date=self.end_date)
         
         inventory_data_joined: dict[tuple[UUID,UUID], InventoryUpdateData] = inventory_data_joiner.join_inventory_update_data()
 
         # purchases data joining
         purchases_joiner = PurchaseDataJoiner(
-            start_date=start_date,
-            end_date=end_date)
+            start_date=self.start_date,
+            end_date=self.end_date)
         
         # get purchases by time interval
         purchases: dict[Any,Any] = self.purchase_fetcher.get_purchases(
