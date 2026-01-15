@@ -127,12 +127,11 @@ class ManualProductData:
             product_data:dict = self.data_fetcher.get_product_data(
                 product_uuid=str(object=key[0]), 
                 organization_id=self.organization_id)
-            
-            rich.print(product_data)
+        
             validated_product_data:ProductData = ProductData.model_validate(obj=product_data)
             
             for variant in validated_product_data.variants:
-                if (variant.product_id,variant.variant_id) == key:
+                if variant.uuid == key[1]:
                     product:Product = Product(
                         name=validated_product_data.name,
                         variant_name=variant.name,

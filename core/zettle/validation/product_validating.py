@@ -6,15 +6,9 @@ class Price(BaseModel):
     amount:int
     currencyId:str
 
-class Options(BaseModel):
-    name:str
-    value:str
-
 class Variants(BaseModel):
-    variant_id: UUID
-    product_id: UUID
+    uuid: UUID
     name: None | str
-    organization_id: UUID
     price: Price
 
 class Category(BaseModel):
