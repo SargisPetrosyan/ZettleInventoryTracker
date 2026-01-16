@@ -26,6 +26,7 @@ htmlcov/
 
 # Virtual environments
 .venv
+test_data/
 env/
 venv/
 ENV/
