@@ -11,9 +11,9 @@ class Product():
     variant_name: str | None 
     _category_name: Category | None
     organization_id: str
+    stock:int
     manual_change: int
     price: int
-    stock:int
     timestamp:datetime
 
     @property

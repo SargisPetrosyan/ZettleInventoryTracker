@@ -103,10 +103,9 @@ class InventoryManualChangesChecker:
 
     def get_manual_changes(self) -> dict[tuple[UUID, UUID], InventoryUpdateData]:
         for purchase, value in self.marge_purchases_update.items():
-            if purchase in self.marge_inventory_update.keys():
-                self.marge_inventory_update[purchase].updated_value = self.marge_inventory_update[purchase].updated_value + value
-                if self.marge_inventory_update[purchase].stock == self.marge_inventory_update[purchase].updated_value:
-                    del self.marge_inventory_update[purchase]
+            self.marge_inventory_update[purchase].updated_value = self.marge_inventory_update[purchase].updated_value + value
+            if self.marge_inventory_update[purchase].stock == self.marge_inventory_update[purchase].updated_value:
+                del self.marge_inventory_update[purchase]
         return self.marge_inventory_update
             
 
@@ -191,9 +190,11 @@ class InventoryManualDataCollector:
         
         # get purchases by time interval
         purchases: dict[Any,Any] = self.purchase_fetcher.get_purchases(
-            end_date=self.end_date,
-            start_date=self.start_date
+            end_date=self.end_date - timedelta(hours=1),
+            start_date=self.start_date - timedelta(hours=1)
         )
+        
+        rich.print(purchases)
 
         validate_purchases:ListOfPurchases = ListOfPurchases.model_validate(obj=purchases)
         purchases_data_merged: dict[tuple[UUID,UUID], int] = purchases_joiner.join_purchase_update_data(purchases=validate_purchases)
