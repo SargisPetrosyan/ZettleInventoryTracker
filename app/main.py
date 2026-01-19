@@ -4,7 +4,7 @@ from core.utils import json_to_dict
 from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation
 from logging_config import setup_logger
 from setup_db import Database
-from webhook_handler import SubscriptionHandler
+from new_repo.zettle.webhook_handler import SubscriptionHandler
 
 setup_logger()
 logger: logging.Logger = logging.getLogger(name=__name__)

@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from dataclasses import dataclass
 from uuid import UUID
 
 
@@ -37,3 +38,9 @@ class InventoryBalanceUpdateValidation(BaseModel):
     messageId: UUID
     payload: Payload
     timestamp: datetime
+
+@dataclass
+class InventoryUpdateData():
+    stock:int
+    updated_value:int
+    timestamp:datetime

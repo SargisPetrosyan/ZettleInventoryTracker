@@ -48,9 +48,9 @@ logs/*
 # Credentials & Sensitive Data (IMPORTANT - Never commit!)
 credentials.json
 token.json
-creds/credentials.json
-creds/token.json
-creds/*
+app/creds/credentials.json
+app/creds/token.json
+app/creds/*
 data/*
 core/zettle/zettle_creds
 data/single_product_data_exampl.py
