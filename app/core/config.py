@@ -6,16 +6,10 @@ import os
 
 load_dotenv()
 
-from setup_db import Database
-
-class Config:
-    def __init__(self,db_url:str):
-        self.db: Engine = self._setup_db(db_url=db_url)
-
-    def _setup_db(self,db_url:str):
-        engine: Engine = create_engine(url=db_url)
-        SQLModel.metadata.create_all(bind=engine)
-        return engine
+class Database:
+    def __init__(self) -> None:
+        self.engine: Engine = create_engine(url="sqlite:///database.db")
+        SQLModel.metadata.create_all(bind=self.engine)
 
 class Settings:
     def __init__(self) -> None:

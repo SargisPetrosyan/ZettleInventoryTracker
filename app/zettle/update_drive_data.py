@@ -1,15 +1,13 @@
 
-from core.context import Context
-from core.google_drive.drive_manager import GoogleDriveFileManager
-from core.google_drive.sheet_manager import (
-    SpreadSheetFileManager,
-)
-from const import (
+from app.zettle.context import Context
+from app.google_drive.drive_manager import GoogleDriveFileManager
+from app.google_drive.sheet_manager import SpreadSheetFileManager
+from constants import (
     DAY_TEMPLATE_ID, 
     MONTHLY_TEMPLATE_ID)
 from gspread.spreadsheet import Spreadsheet
 from gspread.worksheet import Worksheet
-from core.google_drive.services import (
+from app.google_drive.services import (
     DayProductExistenceEnsurer,
     DaySpreadsheetExistenceEnsurer,
     MonthProductExistenceEnsurer,
@@ -19,7 +17,7 @@ from core.google_drive.services import (
     YearFolderExistenceEnsurer,
     DayWorksheetValueUpdater,
 )
-from core.dataclass import Product
+from app.models.product import Product
 import logging
 
 logger: logging.Logger = logging.getLogger(name=__name__)

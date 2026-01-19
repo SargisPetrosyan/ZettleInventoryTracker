@@ -5,7 +5,7 @@ from typing import List
 from gspread.worksheet import JSONResponse
 from gspread import Cell, ValueRange, Worksheet
 
-from const import (
+from app.constants import (
     DAY_PRODUCT_STOCK_IN_COL,
     DAY_PRODUCT_STOCK_OUT_COL,
     MONTH_PRODUCT_STOCK_OUT_ROW_OFFSET,
@@ -14,11 +14,8 @@ from const import (
     DAY_PRODUCT_NAME_COL,
     MONTH_PRODUCT_NAME_COL,
 )
-from core.context import Context
-from core.context import Context
+from app.zettle.context import Context
 import logging
-
-from core.utils import get_row_from_response
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 

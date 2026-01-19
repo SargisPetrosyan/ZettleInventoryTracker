@@ -1,8 +1,8 @@
 from os import name
 from gspread import Spreadsheet, Worksheet
-from core.context import Context
-from core.google_drive.drive_manager import GoogleDriveFileManager
-from const import (
+from app.zettle.context import Context
+from app.google_drive.drive_manager import GoogleDriveFileManager
+from app.constants import (
     DAY_TEMPLATE_ID,
     WORKSHEET_SAMPLE_NAME,
     MONTHLY_TEMPLATE_ID,
@@ -11,14 +11,14 @@ from const import (
 )
 import logging
 
-from core.google_drive.product_managers import (
+from app.google_drive.product_managers import (
     DayWorksheetProductReader,
     DayWorksheetProductWriter,
     MonthWorksheetProductReader,
     MonthWorksheetProductWriter,
 )
 
-from core.google_drive.sheet_manager import SpreadSheetFileManager
+from app.google_drive.sheet_manager import SpreadSheetFileManager
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 

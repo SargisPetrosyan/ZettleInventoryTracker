@@ -3,7 +3,7 @@ from typing import Sequence
 from sqlalchemy import Engine
 from sqlmodel import Field, Session, select
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
-from models import InventoryBalanceUpdateModel
+from app.db.models import InventoryBalanceUpdateModel
 
 
 class  InventoryUpdateRepository():

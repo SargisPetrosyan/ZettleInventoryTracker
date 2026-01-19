@@ -2,16 +2,15 @@ from typing import Any, Sequence
 from uuid import UUID
 import rich
 from sqlalchemy import Engine
-from core.repositories import InventoryUpdateRepository
-from core.dataclass import InventoryUpdateData, Product
-from core.utils import EnvVariablesGetter, utc_to_local
-from core.zettle.data_fetchers import ProductDataFetcher, PurchasesFetcher
-from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation,Payload
+from app.db.schemes import InventoryUpdateRepository
+from app.models.inventory import InventoryUpdateData,InventoryBalanceUpdateValidation, Payload
+from app.models.product import Product,ProductData,ListOfPurchases
+from app.utils import EnvVariablesGetter, utc_to_local
+from app.zettle.data_fetchers import ProductDataFetcher, PurchasesFetcher
+from datetime import datetime, timedelta
+from app.db.models import InventoryBalanceUpdateModel 
+
 import logging
-from datetime import date, datetime, timedelta
-from core.zettle.validation.product_validating import ProductData
-from core.zettle.validation.purchase_validation import ListOfPurchases
-from models import InventoryBalanceUpdateModel 
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 

@@ -4,9 +4,12 @@ import httpx
 from datetime import datetime,timedelta
 import json
 import logging
-from core.utils import ZettleCredsPathManager
+from app.utils import ZettleCredsPathManager
 from datetime import datetime, timedelta
-from core.zettle.validation.zettle_aoth import ZettleAccessToken, ZettleCredentials, ZettleNewAccessToken
+from app.models.zettle import (
+    ZettleAccessToken, 
+    ZettleCredentials, 
+    ZettleNewAccessToken)
 from dotenv import load_dotenv
 
 load_dotenv()
