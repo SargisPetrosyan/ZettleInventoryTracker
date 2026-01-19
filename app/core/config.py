@@ -1,0 +1,29 @@
+import logging
+from sqlalchemy import Engine
+from sqlmodel import  SQLModel, create_engine
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+class Database:
+    def __init__(self) -> None:
+        self.engine: Engine = create_engine(url="sqlite:///database.db")
+        SQLModel.metadata.create_all(bind=self.engine)
+
+class Settings:
+    def __init__(self) -> None:
+        self.DATABASE_URL: str | None = os.getenv("DB_URL")
+        self.MAIL: str | None = os.getenv("MAIL")
+        self.DESTINATION_URL: str | None = os.getenv("DESTINATION_URL")
+        #ART&CRAFT
+        self.ZETTLE_ART_ORGANIZATION_UUID: str | None = os.getenv("ZETTLE_ART_ORGANIZATION_UUID")
+        self.ZETTLE_ART_PRODUCT_READ_CLIENT_ID: str | None = os.getenv("ZETTLE_ART_PRODUCT_READ_CLIENT_ID")
+        self.ZETTLE_ART_PRODUCT_READ_KEY: str | None = os.getenv("ZETTLE_ART_PRODUCT_READ_KEY")
+        #DALA
+        self.ZETTLE_DALA_ORGANIZATION_UUID: str | None = os.getenv("ZETTLE_DALA_ORGANIZATION_UUID")
+        self.ZETTLE_DALA_PRODUCT_READ_CLIENT_ID: str | None = os.getenv("ZETTLE_DALA_PRODUCT_READ_CLIENT_ID")
+        self.ZETTLE_DALA_PRODUCT_READ_KEY: str | None = os.getenv("ZETTLE_DALA_PRODUCT_READ_KEY")
+        
+        
+

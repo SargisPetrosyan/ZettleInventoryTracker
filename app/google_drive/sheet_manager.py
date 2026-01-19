@@ -1,10 +1,10 @@
 from typing import Any
-from core.google_drive.client import SpreadSheetClient
+from app.google_drive.client import SpreadSheetClient
 from gspread.exceptions import WorksheetNotFound
 from gspread.worksheet import Worksheet
 from gspread.spreadsheet import Spreadsheet
 import logging
-from const import (
+from app.constants import (
     WORKSHEET_SAMPLE_COPY_NAME,
     WORKSHEET_SAMPLE_NAME,
 )

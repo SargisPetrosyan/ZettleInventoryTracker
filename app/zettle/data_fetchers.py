@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 import httpx
-from core.zettle.auth import ZettleCredentialsManager
+from app.zettle.auth import ZettleCredentialsManager
 from dotenv import load_dotenv
 
 load_dotenv()

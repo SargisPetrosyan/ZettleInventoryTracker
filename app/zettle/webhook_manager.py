@@ -8,8 +8,8 @@ import logging
 
 import httpx
 
-from core.utils import CredentialContext
-from core.zettle.auth import ZettleCredentialsManager
+from app.utils import CredentialContext
+from app.zettle.auth import ZettleCredentialsManager
 load_dotenv()
 
 

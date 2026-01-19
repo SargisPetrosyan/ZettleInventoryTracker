@@ -1,6 +1,6 @@
-from core.zettle.services import InventoryBalanceUpdater
-from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation
-from setup_db import Database
+from app.zettle.services import InventoryBalanceUpdater
+from app.models.inventory import InventoryBalanceUpdateValidation
+from app.core.config import Database
 
 class SubscriptionHandler:
     def process_subscription(self,inventory_update:InventoryBalanceUpdateValidation,database:Database) -> None:

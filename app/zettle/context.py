@@ -1,8 +1,6 @@
 import logging
-
-from core.dataclass import Product
-from core.utils import FileName
-from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation
+from app.models.product import Product
+from app.utils import FileName
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
