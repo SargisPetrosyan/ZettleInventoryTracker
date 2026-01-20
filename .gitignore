@@ -53,7 +53,7 @@ app/creds/token.json
 app/creds/*
 data/*
 core/zettle/zettle_creds
-data/single_product_data_exampl.py
+data/single_product_data_example.py
 
 .env
 .env.local
