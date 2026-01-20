@@ -1,6 +1,6 @@
 from os import name
 from gspread import Spreadsheet, Worksheet
-from app.zettle.context import Context
+from app.google_drive.context import Context
 from app.google_drive.drive_manager import GoogleDriveFileManager
 from app.constants import (
     DAY_TEMPLATE_ID,

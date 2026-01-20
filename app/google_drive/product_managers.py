@@ -1,8 +1,4 @@
-from http.client import PRECONDITION_FAILED
-from math import prod
-from tkinter import RAISED
 from typing import List
-from gspread.worksheet import JSONResponse
 from gspread import Cell, ValueRange, Worksheet
 
 from app.constants import (
@@ -14,7 +10,7 @@ from app.constants import (
     DAY_PRODUCT_NAME_COL,
     MONTH_PRODUCT_NAME_COL,
 )
-from app.zettle.context import Context
+from app.google_drive.context import Context
 import logging
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -70,8 +66,8 @@ class DayWorksheetProductWriter:
         context.product_inventory_update.category
         new_row: list[str | int | None] = [
             context.product_inventory_update.name,
-            context.product_inventory_update.category,
-            context.product_inventory_update.stock,
+            context.product_inventory_update.category.name,
+            context.product_inventory_update.before,
         ]
         self.worksheet.append_row(values=new_row) #type:ignore
         return
@@ -166,7 +162,7 @@ class MonthWorksheetProductWriter:
                 values=[
                     context.product_inventory_update.name,
                     context.product_inventory_update.category,
-                    context.product_inventory_update.stock,
+                    context.product_inventory_update.before,
                 ],
                 table_range=MONTH_PRODUCT_DATA_CELL_RANGE,
             )
@@ -176,7 +172,7 @@ class MonthWorksheetProductWriter:
                 values=[
                     context.product_inventory_update.name,
                     context.product_inventory_update.category,
-                    context.product_inventory_update.stock,
+                    context.product_inventory_update.before,
                 ]
             )
 

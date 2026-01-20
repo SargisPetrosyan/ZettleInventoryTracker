@@ -135,8 +135,8 @@ class ManualProductData:
                         variant_name=variant.name,
                         category=validated_product_data.category,
                         price=variant.price,
-                        manual_change=value.updated_value,
-                        stock=value.stock,
+                        after=value.updated_value,
+                        before=value.stock,
                         timestamp= value.timestamp,
                         organization_id=self.organization_id
                     )

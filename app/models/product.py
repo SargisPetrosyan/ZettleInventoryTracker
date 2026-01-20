@@ -51,8 +51,8 @@ class Product():
     variant_name: str | None 
     category: Category | None
     organization_id: str
-    stock:int
-    manual_change: int
+    before:int
+    after: int
     timestamp:datetime
     price: Price | None = None
 
@@ -64,6 +64,7 @@ class Product():
             return None
         else:
             return Price(amount=price.amount // 100, currencyId=price.currencyId)
+
     
         
     

@@ -1,10 +1,8 @@
-
+import logging
 from app.google_drive.context import Context
 from app.google_drive.drive_manager import GoogleDriveFileManager
 from app.google_drive.sheet_manager import SpreadSheetFileManager
-from app.constants import (
-    DAY_TEMPLATE_ID, 
-    MONTHLY_TEMPLATE_ID)
+from app.constants import DAY_TEMPLATE_ID, MONTHLY_TEMPLATE_ID
 from gspread.spreadsheet import Spreadsheet
 from gspread.worksheet import Worksheet
 from app.google_drive.services import (
@@ -17,18 +15,24 @@ from app.google_drive.services import (
     YearFolderExistenceEnsurer,
     DayWorksheetValueUpdater,
 )
-from app.models.product import Product
+from app.models.inventory import InventoryBalanceUpdateValidation
+from app.models.product import Product, ProductData
+import json
 import logging
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
 
-class DriveManager:
+with open("data/Product.json", "r") as fp:
+    PRODUCT_UPDATE = json.load(fp)
+
+
+class GoogleSheetUpdater:
     def __init__(
         self,
         google_drive_file_manager: GoogleDriveFileManager,
         spreadsheet_file_manager: SpreadSheetFileManager,
-        ) -> None:
+    ) -> None:
         self.google_drive_file_manager: GoogleDriveFileManager = (
             google_drive_file_manager
         )
@@ -49,9 +53,14 @@ class DriveManager:
             spreadsheet_file_manager=self.spreadsheet_file_manager
         )
 
-    def process_data_to_drive(self, product: Product) -> None:
+    def update_sheet_data(self, products: list[Product]) -> None:
+        product_data = ProductData(**PRODUCT_UPDATE)
 
-        context = Context(inventory_manual_update=product)
+        context = Context(
+            date=products.timestamp,
+            inventory_balance_update=request,
+            product_data=product_data,
+        )
 
         # step 1 ensure year folder:
         self.year_folder_manager.ensure_year_folder(context=context)

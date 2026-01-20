@@ -44,11 +44,11 @@ class Context:
     
     @property
     def stock_in_or_out(self) -> int:
-        if self.product_inventory_update.manual_change > 0:
+        if self.product_inventory_update.after > 0:
             logger.info("product inventory change is stock in")
-            return self.product_inventory_update.manual_change
+            return self.product_inventory_update.after
         logger.info("product inventory change is stock out")
-        return self.product_inventory_update.manual_change
+        return self.product_inventory_update.after
     
     @property
     def price(self) -> int | None:
