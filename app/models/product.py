@@ -1,23 +1,24 @@
 from uuid import UUID
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
-from typing import TypedDict
+from typing import Any, TypedDict
 from dataclasses import dataclass
 
-class Price(BaseModel):
+
+class Price(BaseModel,str_strip_whitespace=True):
     amount:int
     currencyId:str
 
-class Variants(BaseModel):
+class Variants(BaseModel,str_strip_whitespace=True):
     uuid: UUID
     name: None | str
     price: Price | None 
 
-class Category(BaseModel):
+class Category(BaseModel,str_strip_whitespace=True):
     uuid:UUID
     name:str
 
-class ProductData(BaseModel):
+class ProductData(BaseModel, str_strip_whitespace=True):
     uuid: UUID
     categories: list[ None | str]
     name: str
@@ -25,7 +26,7 @@ class ProductData(BaseModel):
     category: Category | None
 
 
-class Products(BaseModel):
+class Products(BaseModel,str_strip_whitespace=True):
     quantity: int
     productUuid: UUID
     variantUuid: UUID
@@ -34,7 +35,7 @@ class Products(BaseModel):
     variantName:str
 
 
-class Purchases(BaseModel):
+class Purchases(BaseModel,str_strip_whitespace=True):
     amount:int
     timestamp:datetime
     products:list[Products]
@@ -48,25 +49,25 @@ class ListOfPurchases(BaseModel):
 class Product():
     name: str
     variant_name: str | None 
-    _category_name: Category | None
+    category: Category | None
     organization_id: str
     stock:int
     manual_change: int
-    _price: int | None
     timestamp:datetime
+    price: Price | None = None
 
-    @property
-    def category(self) -> str | None:
-        if not self._category_name:
-            return None
-        return self._category_name.name
+    def __post_init__(self) -> None:
+        self.price = self.correct_price_amount(price=self.price)
     
-    @property
-    def price(self) -> int | None:
-        if not self._category_name:
+    def correct_price_amount(self, price:Price | None) -> Price | None:
+        if not price:
             return None
-        return self.price
+        else:
+            return Price(amount=price.amount // 100, currencyId=price.currencyId)
     
-
+        
+    
+    
+    
 class ListOfProductData(TypedDict):
     list_of_products: dict[tuple[UUID,UUID], list[Product]]

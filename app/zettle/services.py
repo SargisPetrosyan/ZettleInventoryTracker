@@ -133,8 +133,8 @@ class ManualProductData:
                     product:Product = Product(
                         name=validated_product_data.name,
                         variant_name=variant.name,
-                        _category_name=validated_product_data.category,
-                        price=variant.price.amount,
+                        category=validated_product_data.category,
+                        price=variant.price,
                         manual_change=value.updated_value,
                         stock=value.stock,
                         timestamp= value.timestamp,
@@ -189,11 +189,9 @@ class InventoryManualDataCollector:
         
         # get purchases by time interval
         purchases: dict[Any,Any] = self.purchase_fetcher.get_purchases(
-            end_date=self.start_date - timedelta(hours=1),
-            start_date=self.start_date - timedelta(hours=1)
+            start_date=self.start_date - timedelta(hours=1),
+            end_date=self.end_date - timedelta(hours=1),
         )
-        
-        rich.print(purchases)
 
         validate_purchases:ListOfPurchases = ListOfPurchases.model_validate(obj=purchases)
         purchases_data_merged: dict[tuple[UUID,UUID], int] = purchases_joiner.join_purchase_update_data(purchases=validate_purchases)

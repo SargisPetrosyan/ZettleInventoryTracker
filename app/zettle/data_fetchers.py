@@ -40,7 +40,6 @@ class ProductDataFetcher:
             'Authorization': f'Bearer {access_token}',
         })
         response.raise_for_status()
-        rich.print(response.json())
         return response.json()
 
 

@@ -2,7 +2,7 @@
 from app.zettle.context import Context
 from app.google_drive.drive_manager import GoogleDriveFileManager
 from app.google_drive.sheet_manager import SpreadSheetFileManager
-from constants import (
+from app.constants import (
     DAY_TEMPLATE_ID, 
     MONTHLY_TEMPLATE_ID)
 from gspread.spreadsheet import Spreadsheet

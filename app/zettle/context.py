@@ -43,20 +43,6 @@ class Context:
         return self._month_spreadsheet_id
     
     @property
-    def category(self) -> str:
-        if not self.product_inventory_update.category:
-            logger.info("category is NONE")
-            return "None"
-        return self.product_inventory_update.category
-
-    @property
-    def variant(self) -> str:
-        if not self.product_inventory_update.variant_name:
-            logger.info("variant is NONE")
-            return "None"
-        return self.product_inventory_update.variant_name
-    
-    @property
     def stock_in_or_out(self) -> int:
         if self.product_inventory_update.manual_change > 0:
             logger.info("product inventory change is stock in")
@@ -66,9 +52,9 @@ class Context:
     
     @property
     def price(self) -> int | None:
-        if self.product_inventory_update.price:
-            return self.product_inventory_update.price // 100
-        return self.product_inventory_update.price
+        if not self.product_inventory_update.price:
+            return None
+        return self.product_inventory_update.price.amount // 100
 
 
     @parent_folder_id.setter
