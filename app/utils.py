@@ -153,8 +153,3 @@ async def json_to_dict(request:Request)-> dict:
 
 def utc_to_local(utc_dt:datetime) -> datetime:
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
-
-def if_none_return_str_none(category:Category, price:Price, ) -> str:
-    if not category.name:
-        return str(item)
-    return

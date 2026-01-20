@@ -1,6 +1,6 @@
 from google.oauth2.credentials import Credentials
-from googleapiclient.errors import HttpError  
-from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError #type:ignore
+from googleapiclient.discovery import build #type:ignore
 from gspread.spreadsheet import Spreadsheet
 from app.google_drive.auth import get_drive_credentials
 from typing import Any, Optional

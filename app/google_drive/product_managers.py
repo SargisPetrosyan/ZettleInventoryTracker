@@ -67,6 +67,7 @@ class DayWorksheetProductWriter:
         new_row: list[str | int | None] = [
             context.product.name,
             context.product.category_name,
+            context.product.variant_name,
             context.product.before,
         ]
         self.worksheet.append_row(values=new_row) #type:ignore
@@ -93,7 +94,6 @@ class DayWorksheetProductWriter:
             col=DAY_PRODUCT_STOCK_OUT_COL,
             value=-abs(increment_values),
         )
-
 
 class MonthWorksheetProductReader:
     def __init__(
@@ -122,7 +122,7 @@ class MonthWorksheetProductReader:
         return int(product.value)
 
     def get_product_stock_out(self, product_row: int, stock_out_col: int) -> int:
-        stock_out: Cell = self.worksheet.cell(row=product_row , col=stock_out_col)
+        stock_out: Cell = self.worksheet.cell(row=product_row, col=stock_out_col)
 
         if not stock_out.value:
             raise TypeError("Month product stock out value not exist ")
@@ -162,6 +162,8 @@ class MonthWorksheetProductWriter:
                 values=[
                     context.product.name,
                     context.product.category_name,
+                    context.product.variant_name,
+                    context.product.price,
                     context.product.before,
                 ],
                 table_range=MONTH_PRODUCT_DATA_CELL_RANGE,
@@ -172,6 +174,8 @@ class MonthWorksheetProductWriter:
                 values=[
                     context.product.name,
                     context.product.category_name,
+                    context.product.variant_name,
+                    context.product.price,
                     context.product.before,
                 ]
             )

@@ -14,6 +14,7 @@ webhook_handler = SubscriptionHandler()
 
 app = FastAPI()
 
+
 @app.post(path="/store_inventory_data_webhook")
 async def store_inventory_data_webhook(request: Request) -> None | dict:
     data:dict = await request.json() 
