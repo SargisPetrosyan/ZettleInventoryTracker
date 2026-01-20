@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any
 import httpx
+import rich
 from app.zettle.auth import ZettleCredentialsManager
 from dotenv import load_dotenv
 
@@ -39,6 +40,7 @@ class ProductDataFetcher:
             'Authorization': f'Bearer {access_token}',
         })
         response.raise_for_status()
+        rich.print(response.json())
         return response.json()
 
 

@@ -3,14 +3,13 @@ import json
 import logging
 from fastapi import Request
 from gspread.worksheet import JSONResponse
-from const import MONTH_PRODUCT_STOCK_IN_COL_OFFSET, SHOP_SUBSCRIPTION_EVENTS, WEBHOOK_ENDPOINT_NAME
-from core.google_drive.client import GoogleDriveClient, SpreadSheetClient
-from core.google_drive.drive_manager import GoogleDriveFileManager
-from core.google_drive.sheet_manager import SpreadSheetFileManager
+from app.constants import MONTH_PRODUCT_STOCK_IN_COL_OFFSET, SHOP_SUBSCRIPTION_EVENTS, WEBHOOK_ENDPOINT_NAME
+from app.google_drive.client import GoogleDriveClient, SpreadSheetClient
+from app.google_drive.drive_manager import GoogleDriveFileManager
+from app.google_drive.sheet_manager import SpreadSheetFileManager
 from datetime import datetime, timezone
-import pytz
 import os
-from const import (
+from app.constants import (
     DALA_SHOP,
     ART_AND_CRAFT,
     CAFE,
@@ -90,11 +89,11 @@ class ZettleCredsPathManager:
     def __init__(self,shop_name:str) -> None:      
         BASE_DIR: str = os.path.dirname(p=os.path.abspath(path=__file__))
         self.token_path: str = os.path.abspath(
-            path=os.path.join(BASE_DIR, f"../creds/zettle/{shop_name}_access_token.json")
+            path=os.path.join(BASE_DIR, f"creds/zettle/{shop_name}_access_token.json")
         )
 
         self.credentials_path: str = os.path.abspath(
-            path=os.path.join(BASE_DIR, f"../creds/zettle/{shop_name}_credentials.json")
+            path=os.path.join(BASE_DIR, f"creds/zettle/{shop_name}_credentials.json")
         )
 
 class CredentialContext():

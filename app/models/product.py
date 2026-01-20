@@ -11,7 +11,7 @@ class Price(BaseModel):
 class Variants(BaseModel):
     uuid: UUID
     name: None | str
-    price: Price
+    price: Price | None 
 
 class Category(BaseModel):
     uuid:UUID
@@ -52,14 +52,20 @@ class Product():
     organization_id: str
     stock:int
     manual_change: int
-    price: int
+    _price: int | None
     timestamp:datetime
 
     @property
-    def category(self) -> str:
+    def category(self) -> str | None:
         if not self._category_name:
-            return 'None'
+            return None
         return self._category_name.name
+    
+    @property
+    def price(self) -> int | None:
+        if not self._category_name:
+            return None
+        return self.price
     
 
 class ListOfProductData(TypedDict):

@@ -189,7 +189,7 @@ class InventoryManualDataCollector:
         
         # get purchases by time interval
         purchases: dict[Any,Any] = self.purchase_fetcher.get_purchases(
-            end_date=self.end_date - timedelta(hours=1),
+            end_date=self.start_date - timedelta(hours=1),
             start_date=self.start_date - timedelta(hours=1)
         )
         

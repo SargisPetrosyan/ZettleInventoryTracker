@@ -65,10 +65,10 @@ class Context:
         return self.product_inventory_update.manual_change
     
     @property
-    def price(self) -> int:
-        if not self.product_inventory_update.price:
-            raise TypeError("price timestamp cant be NONE")
-        return self.product_inventory_update.price // 100 #in zettle value has 2 extra 00 digits
+    def price(self) -> int | None:
+        if self.product_inventory_update.price:
+            return self.product_inventory_update.price // 100
+        return self.product_inventory_update.price
 
 
     @parent_folder_id.setter

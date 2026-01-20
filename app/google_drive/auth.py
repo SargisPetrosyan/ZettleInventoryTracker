@@ -16,10 +16,10 @@ def get_drive_credentials() -> Credentials:
     logger.info("getting google drive credentials")
     BASE_DIR: str = os.path.dirname(p=os.path.abspath(path=__file__))
     CREDENTIALS_PATH: str = os.path.abspath(
-        path=os.path.join(BASE_DIR, "../../creds/credentials.json")
+        path=os.path.join(BASE_DIR, "../../app/creds/credentials.json")
     )
     TOKEN_PATH: str = os.path.abspath(
-        path=os.path.join(BASE_DIR, "../../creds/token.json")
+        path=os.path.join(BASE_DIR, "../../app/creds/token.json")
     )
     SCOPES: list[str] = [
         "https://www.googleapis.com/auth/spreadsheets",

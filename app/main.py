@@ -1,10 +1,10 @@
 from fastapi import FastAPI, Request
 import logging
-from core.utils import json_to_dict
-from core.zettle.validation.inventory_update_validation import InventoryBalanceUpdateValidation
-from logging_config import setup_logger
-from setup_db import Database
-from new_repo.zettle.webhook_handler import SubscriptionHandler
+from app.utils import json_to_dict
+from app.models.inventory import InventoryBalanceUpdateValidation
+from app.core.logging import setup_logger
+from app.core.config import Database
+from app.zettle.webhook_handler import SubscriptionHandler
 
 setup_logger()
 logger: logging.Logger = logging.getLogger(name=__name__)
