@@ -1,5 +1,5 @@
 import logging
-from app.models.product import Product
+from app.models.product import SpreadsheetProductData
 from app.utils import FileName
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -8,15 +8,15 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 class Context:
     def __init__(
         self,
-        inventory_manual_update: Product,
+        product_manual: SpreadsheetProductData,
     ) -> None:
         
         self._parent_folder_id: str | None = None
         self._year_folder_id: str | None = None
         self._day_spreadsheet_id: str | None = None
         self._month_spreadsheet_id: str | None = None
-        self.name:FileName = FileName(date=self.product_inventory_update.timestamp)
-        self.product_inventory_update: Product = inventory_manual_update
+        self.name:FileName = FileName(date=self.product.timestamp)
+        self.product: SpreadsheetProductData = product_manual
 
     @property
     def parent_folder_id(self) -> str:
@@ -41,21 +41,6 @@ class Context:
         if not self._month_spreadsheet_id:
             raise TypeError("month_spreadsheet_id cant be NONE")
         return self._month_spreadsheet_id
-    
-    @property
-    def stock_in_or_out(self) -> int:
-        if self.product_inventory_update.after > 0:
-            logger.info("product inventory change is stock in")
-            return self.product_inventory_update.after
-        logger.info("product inventory change is stock out")
-        return self.product_inventory_update.after
-    
-    @property
-    def price(self) -> int | None:
-        if not self.product_inventory_update.price:
-            return None
-        return self.product_inventory_update.price.amount // 100
-
 
     @parent_folder_id.setter
     def parent_folder_id(self, id: str) -> None:

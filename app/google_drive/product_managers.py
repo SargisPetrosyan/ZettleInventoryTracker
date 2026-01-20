@@ -1,5 +1,6 @@
 from typing import List
 from gspread import Cell, ValueRange, Worksheet
+from sqlalchemy import values
 
 from app.constants import (
     DAY_PRODUCT_STOCK_IN_COL,
@@ -63,11 +64,10 @@ class DayWorksheetProductWriter:
         self.worksheet: Worksheet = worksheet
 
     def add_new_product(self, context: Context) -> None:
-        context.product_inventory_update.category
         new_row: list[str | int | None] = [
-            context.product_inventory_update.name,
-            context.product_inventory_update.category.name,
-            context.product_inventory_update.before,
+            context.product.name,
+            context.product.category_name,
+            context.product.before,
         ]
         self.worksheet.append_row(values=new_row) #type:ignore
         return
@@ -160,9 +160,9 @@ class MonthWorksheetProductWriter:
         if not first_element[0]:
             self.worksheet.append_row(
                 values=[
-                    context.product_inventory_update.name,
-                    context.product_inventory_update.category,
-                    context.product_inventory_update.before,
+                    context.product.name,
+                    context.product.category_name,
+                    context.product.before,
                 ],
                 table_range=MONTH_PRODUCT_DATA_CELL_RANGE,
             )
@@ -170,9 +170,9 @@ class MonthWorksheetProductWriter:
         else:
             self.worksheet.append_row(
                 values=[
-                    context.product_inventory_update.name,
-                    context.product_inventory_update.category,
-                    context.product_inventory_update.before,
+                    context.product.name,
+                    context.product.category_name,
+                    context.product.before,
                 ]
             )
 

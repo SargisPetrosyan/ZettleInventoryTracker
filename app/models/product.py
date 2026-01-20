@@ -1,8 +1,9 @@
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 from datetime import datetime
-from typing import Any, TypedDict
+from typing import  TypedDict
 from dataclasses import dataclass
+from app.constants import EMPTY_FIELD_NAME
 
 
 class Price(BaseModel,str_strip_whitespace=True):
@@ -11,7 +12,7 @@ class Price(BaseModel,str_strip_whitespace=True):
 
 class Variants(BaseModel,str_strip_whitespace=True):
     uuid: UUID
-    name: None | str
+    name: str | None
     price: Price | None 
 
 class Category(BaseModel,str_strip_whitespace=True):
@@ -44,31 +45,16 @@ class Purchases(BaseModel,str_strip_whitespace=True):
 
 class ListOfPurchases(BaseModel):
     purchases: list[Purchases]
-
 @dataclass
-class Product():
-    name: str
-    variant_name: str | None 
-    category: Category | None
-    organization_id: str
-    before:int
+class SpreadsheetProductData():
+    organization_id: str 
+    before: int 
     after: int
-    timestamp:datetime
-    price: Price | None = None
+    timestamp: datetime
+    name: str 
+    variant_name: str 
+    category_name: str 
+    price: str 
 
-    def __post_init__(self) -> None:
-        self.price = self.correct_price_amount(price=self.price)
-    
-    def correct_price_amount(self, price:Price | None) -> Price | None:
-        if not price:
-            return None
-        else:
-            return Price(amount=price.amount // 100, currencyId=price.currencyId)
-
-    
-        
-    
-    
-    
 class ListOfProductData(TypedDict):
-    list_of_products: dict[tuple[UUID,UUID], list[Product]]
+    list_of_products: dict[tuple[UUID,UUID], list[SpreadsheetProductData]]

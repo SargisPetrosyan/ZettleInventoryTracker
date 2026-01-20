@@ -1,6 +1,7 @@
 from datetime import  datetime, timedelta
 import json
 import logging
+from typing import Any
 from fastapi import Request
 from gspread.worksheet import JSONResponse
 from app.constants import MONTH_PRODUCT_STOCK_IN_COL_OFFSET, SHOP_SUBSCRIPTION_EVENTS, WEBHOOK_ENDPOINT_NAME
@@ -14,6 +15,7 @@ from app.constants import (
     ART_AND_CRAFT,
     CAFE,
 )
+from app.models.product import Category, Price
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 import os
@@ -151,3 +153,8 @@ async def json_to_dict(request:Request)-> dict:
 
 def utc_to_local(utc_dt:datetime) -> datetime:
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
+
+def if_none_return_str_none(category:Category, price:Price, ) -> str:
+    if not category.name:
+        return str(item)
+    return

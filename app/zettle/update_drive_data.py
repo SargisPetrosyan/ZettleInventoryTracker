@@ -17,7 +17,7 @@ from app.google_drive.services import (
     YearFolderExistenceEnsurer,
     DayWorksheetValueUpdater,
 )
-from app.models.product import Product
+from app.models.product import SpreadsheetProductData
 import logging
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -49,9 +49,9 @@ class DriveManager:
             spreadsheet_file_manager=self.spreadsheet_file_manager
         )
 
-    def process_data_to_drive(self, product: Product) -> None:
+    def process_data_to_drive(self, product: SpreadsheetProductData) -> None:
 
-        context = Context(inventory_manual_update=product)
+        context = Context(product_manual=product)
 
         # step 1 ensure year folder:
         self.year_folder_manager.ensure_year_folder(context=context)

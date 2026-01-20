@@ -16,7 +16,7 @@ from app.google_drive.services import (
     DayWorksheetValueUpdater,
 )
 from app.models.inventory import InventoryBalanceUpdateValidation
-from app.models.product import Product, ProductData
+from app.models.product import SpreadsheetProductData, ProductData
 import json
 import logging
 
@@ -53,14 +53,9 @@ class GoogleSheetUpdater:
             spreadsheet_file_manager=self.spreadsheet_file_manager
         )
 
-    def update_sheet_data(self, products: list[Product]) -> None:
-        product_data = ProductData(**PRODUCT_UPDATE)
-
-        context = Context(
-            date=products.timestamp,
-            inventory_balance_update=request,
-            product_data=product_data,
-        )
+    def update_sheet_data(self, products: SpreadsheetProductData) -> None:
+        
+        context = Context(product_manual=products)
 
         # step 1 ensure year folder:
         self.year_folder_manager.ensure_year_folder(context=context)
