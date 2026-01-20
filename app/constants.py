@@ -1,3 +1,9 @@
+from dotenv import load_dotenv
+
+from app.utils import EnvVariablesGetter
+
+load_dotenv()
+
 PAGE_SIZE_FOR_LIST_FILES: int = 100
 
 # names
@@ -17,7 +23,7 @@ NESTED_FOLDER_ID: str = "1PNDivjpslR_dA2a5yZlE5l9lbfr7XWa4"
 ROOT_FOLDER_ID: str = "1HlMXMD94ok0mFEP8k7QoGY3JZX8YjAQS"
 DALASHOP_FOLDER_ID: str = "1kjWENsaqJWC7PeSXVD7IP5yVe4GZp1VP"
 ART_CRAFT_FOLDER_ID: str = "1KtFC0c9PKaaX5r65ZKOihWigFwc2gYny"
-DALA_CAFFE_FOLDER_ID: str = "1VpgSGa9LzMKPFjLCOBs6vQazdawqOzHw"
+CAFFE_FOLDER_ID: str = "1VpgSGa9LzMKPFjLCOBs6vQazdawqOzHw"
 
 # shop id's
 ID_DALA_SHOP: str = "DALA_ID"
@@ -41,12 +47,7 @@ MONTH_PRODUCT_PRICE: int = 4
 MONTH_PRODUCT_STOCK_IN_COL_OFFSET: int = 6
 MONTH_PRODUCT_STOCK_OUT_ROW_OFFSET: int = 1
 
-# shop id mapped to folder id
-SHOP_ID: dict[str, str] = {
-    "dala_id": DALASHOP_FOLDER_ID,
-    "art_id": ART_CRAFT_FOLDER_ID,
-    "caffe_id": DALA_CAFFE_FOLDER_ID,
-}
+
 
 # month worksheet
 MONTH_WORKSHEET_FIRST_CELL: str = "A2:A3"  # merged cells

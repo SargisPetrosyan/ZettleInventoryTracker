@@ -45,6 +45,7 @@ class Purchases(BaseModel,str_strip_whitespace=True):
 
 class ListOfPurchases(BaseModel):
     purchases: list[Purchases]
+    
 @dataclass
 class SpreadsheetProductData():
     organization_id: str 

@@ -4,7 +4,7 @@ import logging
 from typing import Any
 from fastapi import Request
 from gspread.worksheet import JSONResponse
-from app.constants import MONTH_PRODUCT_STOCK_IN_COL_OFFSET, SHOP_SUBSCRIPTION_EVENTS, WEBHOOK_ENDPOINT_NAME
+from app.constants import ART_CRAFT_FOLDER_ID, CAFFE_FOLDER_ID, DALAHOP_FOLDER_NAME, DALASHOP_FOLDER_ID, MONTH_PRODUCT_STOCK_IN_COL_OFFSET, SHOP_SUBSCRIPTION_EVENTS, WEBHOOK_ENDPOINT_NAME
 from app.google_drive.client import GoogleDriveClient, SpreadSheetClient
 from app.google_drive.drive_manager import GoogleDriveFileManager
 from app.google_drive.sheet_manager import SpreadSheetFileManager
@@ -24,7 +24,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class EnvVariablesGetter:
-    def get_env_variable(self,variable_name:str) -> str:
+
+    @staticmethod
+    def get_env_variable(variable_name:str) -> str:
         variable: str | None = os.getenv(key=variable_name)
 
         if not variable:
@@ -153,3 +155,18 @@ async def json_to_dict(request:Request)-> dict:
 
 def utc_to_local(utc_dt:datetime) -> datetime:
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
+
+def get_folder_id_by_shop_id(shop_id:str):
+    dala_shop_organization_id = EnvVariablesGetter.get_env_variable(variable_name='ZETTLE_DALA_ORGANIZATION_UUID')
+    art_shop_organization_id = EnvVariablesGetter.get_env_variable(variable_name='ZETTLE_ART_ORGANIZATION_UUID')
+    caffe_shop_organization_id = ''
+
+    shop_ids: dict[str, str] = {
+        dala_shop_organization_id:DALASHOP_FOLDER_ID,
+        art_shop_organization_id:ART_CRAFT_FOLDER_ID,
+        caffe_shop_organization_id:CAFFE_FOLDER_ID,
+    }
+
+    return shop_ids[shop_id]
+
+

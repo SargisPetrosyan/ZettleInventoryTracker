@@ -15,8 +15,8 @@ class Context:
         self._year_folder_id: str | None = None
         self._day_spreadsheet_id: str | None = None
         self._month_spreadsheet_id: str | None = None
-        self.name:FileName = FileName(date=self.product.timestamp)
         self.product: SpreadsheetProductData = product_manual
+        self.name:FileName = FileName(date=self.product.timestamp)
 
     @property
     def parent_folder_id(self) -> str:

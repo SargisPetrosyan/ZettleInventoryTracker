@@ -19,6 +19,7 @@ from app.google_drive.product_managers import (
 )
 
 from app.google_drive.sheet_manager import SpreadSheetFileManager
+from app.utils import get_folder_id_by_shop_id
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -34,8 +35,7 @@ class YearFolderExistenceEnsurer:
 
     def ensure_year_folder(self, context: Context) -> None:
         logger.info(msg=f"check if 'year: {context.name.year}' folder exist")
-        parent_folder_id: str | None = SHOP_ID[str(context.product.organization_id)]
-
+        parent_folder_id: str | None = get_folder_id_by_shop_id(context.product.organization_id)
         year_folder_id: str | None = self.drive_file_manager.folder_exist_by_name(
             folder_name=context.name.year_folder_name,
             parent_folder_id=parent_folder_id,
