@@ -131,12 +131,20 @@ class ManualProductData:
             
             for variant in validated_product_data.variants:
                 if variant.uuid == key[1]:
-
                     product:SpreadsheetProductData = SpreadsheetProductData(
                         name=validated_product_data.name,
                         variant_name=str(object=variant.name),
-                        category_name=str(object=validated_product_data.category),
-                        price=str(object=variant.price),
+                        product_variant_uuid=f"{str(key[0])},{str(key[1])}",
+                        category_name=(
+                            validated_product_data.category.name
+                            if validated_product_data.category is not None
+                            else "None"
+                        ),
+                        price=(
+                            variant.price.amount // 100
+                            if variant.price is not None
+                            else "None"
+                        ),
                         after=value.updated_value,
                         before=value.stock,
                         timestamp= value.timestamp,

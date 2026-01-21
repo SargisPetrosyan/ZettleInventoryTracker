@@ -7,7 +7,6 @@ from app.constants import (
     WORKSHEET_SAMPLE_NAME,
     MONTHLY_TEMPLATE_ID,
     DALASHOP_FOLDER_ID,
-    SHOP_ID,
 )
 import logging
 
@@ -208,7 +207,7 @@ class DayProductExistenceEnsurer:
 
     def ensure_day_product(self, context: Context) -> None:
         product_exist: int | None = self.day_worksheet_reader.product_exist(
-            product_name=context.product.name
+            product_variant_id=context.product.product_variant_uuid
         )
         if not product_exist:
             logger.info(
@@ -229,7 +228,7 @@ class MonthProductExistenceEnsurer:
 
     def ensure_month_product(self, context: Context) -> int | None:
         product_exist: int | None = self.month_worksheet_reader.product_exist(
-            product_name=context.product.name
+            product_variant_uuid=context.product.product_variant_uuid
         )
         if not product_exist:
             logger.info(
@@ -251,7 +250,7 @@ class DayWorksheetValueUpdater:
         if context.product.after - context.product.before > 0:
             logger.info(msg="update stock in in worksheets")
             product_row: int = day_worksheet_reader.get_product_row_by_name(
-                product_name=context.product.name
+                product_variant_id=context.product.product_variant_uuid
             )
             old_stock_in: int = day_worksheet_reader.get_product_stock_in(
                 product_row=product_row
@@ -265,7 +264,7 @@ class DayWorksheetValueUpdater:
         if context.product.after - context.product.before < 0:
             logger.info(msg="update stock in in worksheets")
             product_row: int = day_worksheet_reader.get_product_row_by_name(
-                product_name=context.product.name
+                product_variant_id=context.product.product_variant_uuid
             )
             old_stock_out: int = day_worksheet_reader.get_product_stock_out(
                 product_row=product_row
@@ -290,7 +289,7 @@ class MonthWorksheetValueUpdater:
             logger.info(msg="update stock in in worksheets")
 
             product_row: int = month_worksheet_reader.get_product_row_by_name(
-                product_name=context.product.name
+                product_variant_id=context.product.product_variant_uuid
             )
             old_stock_in: int = month_worksheet_reader.get_product_stock_in(
                 product_row=product_row,
@@ -307,7 +306,7 @@ class MonthWorksheetValueUpdater:
         elif context.product.after - context.product.before < 0:
             logger.info(msg="update stock in in worksheets")
             stock_out_row: int = month_worksheet_reader.get_product_stock_out_row(
-                product_name=context.product.name
+                product_variant_id=context.product.product_variant_uuid
             )
             old_stock_out: int = month_worksheet_reader.get_product_stock_out(
                 product_row=stock_out_row,

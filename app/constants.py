@@ -1,7 +1,5 @@
 from dotenv import load_dotenv
 
-from app.utils import EnvVariablesGetter
-
 load_dotenv()
 
 PAGE_SIZE_FOR_LIST_FILES: int = 100
@@ -37,7 +35,7 @@ DAY_PRODUCT_VARIANT: int = 3
 DAY_PRODUCT_PRICE: int = 4
 DAY_PRODUCT_STOCK_IN_COL: int = 5
 DAY_PRODUCT_STOCK_OUT_COL: int = 6
-DAY_PRODUCT_CLOSING_STOCK_COL: int = 7
+DAY_PRODUCT_AND_VARIANT_ID_COL: int = 7
 
 # month worksheet columns index
 MONTH_PRODUCT_NAME_COL: int = 1
@@ -46,8 +44,7 @@ MONTH_PRODUCT_VARIANT: int = 3
 MONTH_PRODUCT_PRICE: int = 4
 MONTH_PRODUCT_STOCK_IN_COL_OFFSET: int = 6
 MONTH_PRODUCT_STOCK_OUT_ROW_OFFSET: int = 1
-
-
+MONTH_PRODUCT_AND_VARIANT_ID_COL: int = 38
 
 # month worksheet
 MONTH_WORKSHEET_FIRST_CELL: str = "A2:A3"  # merged cells

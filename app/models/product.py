@@ -45,17 +45,18 @@ class Purchases(BaseModel,str_strip_whitespace=True):
 
 class ListOfPurchases(BaseModel):
     purchases: list[Purchases]
-    
+
 @dataclass
 class SpreadsheetProductData():
-    organization_id: str 
+    organization_id: str
+    product_variant_uuid: str
     before: int 
     after: int
     timestamp: datetime
     name: str 
     variant_name: str 
     category_name: str 
-    price: str 
+    price: str | int
 
 class ListOfProductData(TypedDict):
     list_of_products: dict[tuple[UUID,UUID], list[SpreadsheetProductData]]

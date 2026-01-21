@@ -1,10 +1,14 @@
 from typing import List
+from fastapi.responses import JSONResponse
 from gspread import Cell, ValueRange, Worksheet
+import rich
 from sqlalchemy import values
 
 from app.constants import (
+    DAY_PRODUCT_AND_VARIANT_ID_COL,
     DAY_PRODUCT_STOCK_IN_COL,
     DAY_PRODUCT_STOCK_OUT_COL,
+    MONTH_PRODUCT_AND_VARIANT_ID_COL,
     MONTH_PRODUCT_STOCK_OUT_ROW_OFFSET,
     MONTH_WORKSHEET_FIRST_CELL,
     MONTH_PRODUCT_DATA_CELL_RANGE,
@@ -13,6 +17,9 @@ from app.constants import (
 )
 from app.google_drive.context import Context
 import logging
+
+from app.models.google_drive import RowEditResponse
+from app.utils import extract_row_from_notation
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -26,9 +33,9 @@ class DayWorksheetProductReader:
         self.stock_in_col: int = DAY_PRODUCT_STOCK_IN_COL
         self.stock_out_index: int = DAY_PRODUCT_STOCK_OUT_COL
 
-    def get_product_row_by_name(self, product_name: str) -> int:
+    def get_product_row_by_name(self, product_variant_id: str) -> int:
         product: Cell | None = self.worksheet.find(
-            query=product_name, in_column=DAY_PRODUCT_NAME_COL
+            query=product_variant_id, in_column=DAY_PRODUCT_AND_VARIANT_ID_COL
         )
 
         if not product:
@@ -49,9 +56,9 @@ class DayWorksheetProductReader:
             raise TypeError("day product stock out value not exist")
         return int(stock_out.value)
 
-    def product_exist(self, product_name: str) -> bool:
+    def product_exist(self, product_variant_id: str) -> bool:
         product: Cell | None = self.worksheet.find(
-            query=product_name, in_column=DAY_PRODUCT_NAME_COL
+            query=product_variant_id, in_column=DAY_PRODUCT_AND_VARIANT_ID_COL
         )
 
         if not product:
@@ -68,11 +75,16 @@ class DayWorksheetProductWriter:
             context.product.name,
             context.product.category_name,
             context.product.variant_name,
-            context.product.before,
+            context.product.price,
         ]
-        self.worksheet.append_row(values=new_row) #type:ignore
-        return
-
+        response:JSONResponse = self.worksheet.append_row(values=new_row) #type:ignore
+        response_validated: RowEditResponse = RowEditResponse.model_validate(response)
+        row_number:int = extract_row_from_notation(response=response_validated)
+        self.worksheet.update_cell(
+            row=row_number, 
+            col=DAY_PRODUCT_AND_VARIANT_ID_COL,
+            value=context.product.product_variant_uuid)
+        
     def update_stock_in(
         self,
         old_stock_in: int,
@@ -104,10 +116,10 @@ class MonthWorksheetProductReader:
 
     def get_product_row_by_name(
         self,
-        product_name: str,
+        product_variant_id: str,
     ) -> int:
         product: Cell | None = self.worksheet.find(
-            query=product_name, in_column=MONTH_PRODUCT_NAME_COL
+            query=product_variant_id, in_column=MONTH_PRODUCT_AND_VARIANT_ID_COL
         )
 
         if not product:
@@ -128,18 +140,18 @@ class MonthWorksheetProductReader:
             raise TypeError("Month product stock out value not exist ")
         return int(stock_out.value)
 
-    def product_exist(self, product_name: str) -> bool:
+    def product_exist(self, product_variant_uuid: str) -> bool:
         product: Cell | None = self.worksheet.find(
-            query=product_name, in_column=MONTH_PRODUCT_NAME_COL
+            query=product_variant_uuid, in_column=MONTH_PRODUCT_AND_VARIANT_ID_COL
         )
 
         if not product:
             return False
         return True
     
-    def get_product_stock_out_row(self,product_name:str) -> int:
+    def get_product_stock_out_row(self,product_variant_id:str) -> int:
         product: Cell | None = self.worksheet.find(
-            query=product_name, in_column=MONTH_PRODUCT_NAME_COL
+            query=product_variant_id, in_column=MONTH_PRODUCT_AND_VARIANT_ID_COL
             )
 
         if not product:
@@ -158,28 +170,32 @@ class MonthWorksheetProductWriter:
         )
         
         if not first_element[0]:
-            self.worksheet.append_row(
+            edit_response = self.worksheet.append_row(
                 values=[
                     context.product.name,
                     context.product.category_name,
                     context.product.variant_name,
                     context.product.price,
-                    context.product.before,
                 ],
                 table_range=MONTH_PRODUCT_DATA_CELL_RANGE,
-            )
-
+                )
         else:
-            self.worksheet.append_row(
+            edit_response = self.worksheet.append_row(
                 values=[
                     context.product.name,
                     context.product.category_name,
                     context.product.variant_name,
                     context.product.price,
-                    context.product.before,
                 ]
             )
 
+        response_validated: RowEditResponse = RowEditResponse.model_validate(edit_response)
+        row_number:int = extract_row_from_notation(response=response_validated)
+        self.worksheet.update_cell(
+            row=row_number, 
+            col=MONTH_PRODUCT_AND_VARIANT_ID_COL,
+            value=context.product.product_variant_uuid)
+        
         self._col = int(context.name.month_stock_in_and_out_col_index)
 
     def update_stock_in(

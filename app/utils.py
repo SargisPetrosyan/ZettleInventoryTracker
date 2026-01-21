@@ -1,10 +1,12 @@
 from datetime import  datetime, timedelta
 import json
 import logging
-from typing import Any
+from uuid import UUID
+import uuid
 from fastapi import Request
 from gspread.worksheet import JSONResponse
-from app.constants import ART_CRAFT_FOLDER_ID, CAFFE_FOLDER_ID, DALAHOP_FOLDER_NAME, DALASHOP_FOLDER_ID, MONTH_PRODUCT_STOCK_IN_COL_OFFSET, SHOP_SUBSCRIPTION_EVENTS, WEBHOOK_ENDPOINT_NAME
+import rich
+from app.constants import ART_CRAFT_FOLDER_ID, CAFFE_FOLDER_ID, DALASHOP_FOLDER_ID, MONTH_PRODUCT_STOCK_IN_COL_OFFSET, SHOP_SUBSCRIPTION_EVENTS, WEBHOOK_ENDPOINT_NAME
 from app.google_drive.client import GoogleDriveClient, SpreadSheetClient
 from app.google_drive.drive_manager import GoogleDriveFileManager
 from app.google_drive.sheet_manager import SpreadSheetFileManager
@@ -15,6 +17,7 @@ from app.constants import (
     ART_AND_CRAFT,
     CAFE,
 )
+from app.models.google_drive import RowEditResponse
 from app.models.product import Category, Price
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -157,8 +160,8 @@ def utc_to_local(utc_dt:datetime) -> datetime:
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
 def get_folder_id_by_shop_id(shop_id:str):
-    dala_shop_organization_id = EnvVariablesGetter.get_env_variable(variable_name='ZETTLE_DALA_ORGANIZATION_UUID')
-    art_shop_organization_id = EnvVariablesGetter.get_env_variable(variable_name='ZETTLE_ART_ORGANIZATION_UUID')
+    dala_shop_organization_id: str = EnvVariablesGetter.get_env_variable(variable_name='ZETTLE_DALA_ORGANIZATION_UUID')
+    art_shop_organization_id: str = EnvVariablesGetter.get_env_variable(variable_name='ZETTLE_ART_ORGANIZATION_UUID')
     caffe_shop_organization_id = ''
 
     shop_ids: dict[str, str] = {
@@ -169,4 +172,8 @@ def get_folder_id_by_shop_id(shop_id:str):
 
     return shop_ids[shop_id]
 
-
+def extract_row_from_notation(response:RowEditResponse) -> int:
+    range: str = response.updates.updatedRange
+    split: str = (range.split(":"))[1]
+    row  = int(''.join(filter(lambda x: x.isdigit(), split)))
+    return row
