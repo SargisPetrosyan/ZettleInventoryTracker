@@ -20,7 +20,7 @@ from app.google_drive.services import (
     YearFolderExistenceEnsurer,
     DayWorksheetValueUpdater,
 )
-from app.models.product import SpreadsheetProductData
+from app.models.product import PaypalProductData
 import logging
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -52,7 +52,7 @@ class DriveManager:
             spreadsheet_file_manager=self.spreadsheet_file_manager
         )
 
-    def process_data_to_drive(self, product: SpreadsheetProductData) -> None:
+    def process_data_to_drive(self, product: PaypalProductData) -> None:
 
         context = Context(product_manual=product)
 

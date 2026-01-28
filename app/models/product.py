@@ -47,7 +47,7 @@ class ListOfPurchases(BaseModel):
     purchases: list[Purchases]
 
 @dataclass
-class SpreadsheetProductData():
+class PaypalProductData():
     organization_id: str
     product_variant_uuid: str
     before: int 
@@ -59,4 +59,4 @@ class SpreadsheetProductData():
     price: str | int
 
 class ListOfProductData(TypedDict):
-    list_of_products: dict[tuple[UUID,UUID], list[SpreadsheetProductData]]
+    list_of_products: dict[tuple[UUID,UUID], list[PaypalProductData]]

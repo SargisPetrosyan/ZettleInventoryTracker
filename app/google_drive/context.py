@@ -1,5 +1,5 @@
 import logging
-from app.models.product import SpreadsheetProductData
+from app.models.product import PaypalProductData
 from app.utils import FileName
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -8,14 +8,14 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 class Context:
     def __init__(
         self,
-        product_manual: SpreadsheetProductData,
+        product_manual: PaypalProductData,
     ) -> None:
         
         self._parent_folder_id: str | None = None
         self._year_folder_id: str | None = None
         self._day_spreadsheet_id: str | None = None
         self._month_spreadsheet_id: str | None = None
-        self.product: SpreadsheetProductData = product_manual
+        self.product: PaypalProductData = product_manual
         self.name:FileName = FileName(date=self.product.timestamp)
 
     @property
