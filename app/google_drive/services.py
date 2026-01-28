@@ -1,5 +1,6 @@
 from os import name
 from gspread import Spreadsheet, Worksheet
+from pandas import DataFrame
 from app.google_drive.context import Context
 from app.google_drive.drive_manager import GoogleDriveFileManager
 from app.constants import (
@@ -318,3 +319,14 @@ class MonthWorksheetValueUpdater:
                 row=stock_out_row,
                 col=context.name.month_stock_in_and_out_col_index,
             )
+
+# class DataframeSpreadsheetManager:
+#     def __init__(self,worksheet:Worksheet) -> None:
+#         self.spreadsheet: Worksheet = worksheet
+#         worksheet_data = worksheet.get_all_values()
+#         self.spreadsheet_dataframe:DataFrame =DataFrame.from_records(
+#             data=sheet[1:], columns=sheet[0], index="name"
+#         )
+
+
+#     def process_updates_to_local_dataframe(self):

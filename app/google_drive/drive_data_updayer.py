@@ -1,5 +1,8 @@
 
+import datetime
+import rich
 from app.google_drive.context import Context
+from app.google_drive.dataframe_manager import DayProductDataFrameManager, ProductDataframeManager
 from app.google_drive.drive_manager import GoogleDriveFileManager
 from app.google_drive.sheet_manager import SpreadSheetFileManager
 from app.constants import (
@@ -82,26 +85,4 @@ class DriveManager:
             spreadsheet=month_spreadsheet,
             name=context.name.month_worksheet_name,
             template_spreadsheet_id=MONTHLY_TEMPLATE_ID,
-        )
-
-        # step 4.1 ensure day worksheet product:
-        day_product = DayProductExistenceEnsurer(day_worksheet=day_worksheet)
-        day_product.ensure_day_product(context=context)
-
-        # step 4.2 ensure day worksheet product:
-        month_product = MonthProductExistenceEnsurer(month_worksheet=month_worksheet)
-        month_product.ensure_month_product(context=context)
-
-        # step 5.1 update day remote worksheet
-        DayWorksheetValueUpdater.update_day_worksheet(
-            day_worksheet_reader=day_product.day_worksheet_reader,
-            day_worksheet_writer=day_product.day_worksheet_writer,
-            context=context,
-        )
-
-        # step 5.2 update month remote worksheet
-        MonthWorksheetValueUpdater.update_month_worksheet(
-            month_worksheet_reader=month_product.month_worksheet_reader,
-            month_worksheet_writer=month_product.month_worksheet_writer,
-            context=context,
         )
