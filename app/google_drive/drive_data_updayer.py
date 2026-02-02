@@ -2,7 +2,7 @@
 from typing import Any, List
 from gspread import ValueRange
 from app.google_drive.context import Context
-from app.google_drive.dataframe_manager import DataframeFormatter, DayProductDataFrameManager
+from app.google_drive.dataframe_manager import  DayProductDataFrameManager, MonthProductDataFrameManager
 from app.google_drive.drive_manager import GoogleDriveFileManager
 from app.google_drive.sheet_manager import SpreadSheetFileManager
 from app.constants import (
@@ -13,12 +13,12 @@ from gspread.worksheet import Worksheet
 from app.google_drive.services import (
     DayProductDataEnsurer,
     DaySpreadsheetExistenceEnsurer,
+    DayDataframeUpdater,
+    MonthDataFrameUpdater,
     MonthProductDataEnsurer,
     MonthSpreadsheetExistenceEnsurer,
-    MonthWorksheetValueUpdater,
     WorksheetExistenceEnsurer,
     YearFolderExistenceEnsurer,
-    DayWorksheetValueUpdater,
 )
 from app.models.product import PaypalProductData
 import logging
@@ -54,7 +54,7 @@ class DriveManager:
 
     def process_data_to_drive(self, products: list[PaypalProductData]) -> None:
 
-        context = Context(product_manual=product)
+        context = Context(product_manual=products[0])
 
         # step 1 ensure year folder:
         self.year_folder_manager.ensure_year_folder(context=context)
@@ -87,15 +87,32 @@ class DriveManager:
             template_spreadsheet_id=MONTHLY_TEMPLATE_ID,
         )
         
-        # step 6 ensure product in day and month dataframe
+        
         for product in products:
+            
+            # step 4 ensure product in day and month dataframe
             day_product_ensurer = DayProductDataEnsurer(
                 day_worksheet=day_worksheet,
                 product_data=product)
             
+            day_product_dataframe: DayProductDataFrameManager = day_product_ensurer.ensure_day_product()
+            
             month_product_ensurer = MonthProductDataEnsurer(
                 month_worksheet=day_worksheet,
                 product_data=product)
+            
+            # step 5 update day and month dataframe
+            month_product_dataframe: MonthProductDataFrameManager = month_product_ensurer.ensure_month_product()
+
+            day_dataframe_updater  = DayDataframeUpdater(product_data=product,day_product_dataframe=day_product_dataframe)
+            month_dataframe_updater = MonthDataFrameUpdater(product_data=product, month_product_dataframe=month_product_dataframe)
+            
+            day_dataframe_updater.update_dataframe()
+            month_dataframe_updater.update_dataframe(context=context)
+
+            
+
+
             
             
 

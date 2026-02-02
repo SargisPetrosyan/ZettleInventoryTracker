@@ -5,7 +5,7 @@ from gspread import Spreadsheet, ValueRange, Worksheet
 from h11 import Data
 from pandas import DataFrame
 from app.google_drive.context import Context
-from app.google_drive.dataframe_manager import DataframeFormatter, DayProductDataFrameManager, MonthProductDataFrameManager
+from app.google_drive.dataframe_manager import DayProductDataFrameManager, MonthProductDataFrameManager
 from app.google_drive.drive_manager import GoogleDriveFileManager
 from app.constants import (
     DAY_TEMPLATE_ID,
@@ -15,12 +15,6 @@ from app.constants import (
 )
 import logging
 
-from app.google_drive.product_managers import (
-    DayWorksheetProductReader,
-    DayWorksheetProductWriter,
-    MonthWorksheetProductReader,
-    MonthWorksheetProductWriter,
-)
 
 from app.google_drive.sheet_manager import SpreadSheetFileManager
 from app.models.product import PaypalProductData
@@ -203,88 +197,6 @@ class WorksheetExistenceEnsurer:
         return worksheet
 
 
-class DayWorksheetValueUpdater:
-    @staticmethod
-    def update_day_worksheet(
-        context: Context,
-        day_worksheet_writer: DayWorksheetProductWriter,
-        day_worksheet_reader: DayWorksheetProductReader,
-    ) -> None:
-        logger.info(msg=f"product by name '{context.product.name}' was found ")
-
-        if context.product.after - context.product.before > 0:
-            logger.info(msg="update stock in in worksheets")
-            product_row: int = day_worksheet_reader.get_product_row_by_name(
-                product_variant_id=context.product.product_variant_uuid
-            )
-            old_stock_in: int = day_worksheet_reader.get_product_stock_in(
-                product_row=product_row
-            )
-            day_worksheet_writer.update_stock_in(
-                old_stock_in=old_stock_in,
-                amount=context.product.after - context.product.before,
-                row=product_row,
-            )
-
-        if context.product.after - context.product.before < 0:
-            logger.info(msg="update stock in in worksheets")
-            product_row: int = day_worksheet_reader.get_product_row_by_name(
-                product_variant_id=context.product.product_variant_uuid
-            )
-            old_stock_out: int = day_worksheet_reader.get_product_stock_out(
-                product_row=product_row
-            )
-            day_worksheet_writer.update_stock_out(
-                old_stock_out=old_stock_out,
-                amount=context.product.after - context.product.before,
-                row=product_row,
-            )
-
-
-class MonthWorksheetValueUpdater:
-    @staticmethod
-    def update_month_worksheet(
-        context: Context,
-        month_worksheet_writer: MonthWorksheetProductWriter,
-        month_worksheet_reader: MonthWorksheetProductReader,
-    ) -> None:
-        logger.info(msg=f"product by name '{context.product.name}' was found ")
-
-        if context.product.after - context.product.before > 0:
-            logger.info(msg="update stock in in worksheets")
-
-            product_row: int = month_worksheet_reader.get_product_row_by_name(
-                product_variant_id=context.product.product_variant_uuid
-            )
-            old_stock_in: int = month_worksheet_reader.get_product_stock_in(
-                product_row=product_row,
-                stock_in_col=context.name.month_stock_in_and_out_col_index,
-            )
-
-            month_worksheet_writer.update_stock_in(
-                old_stock_in=old_stock_in,
-                amount=context.product.after - context.product.before,
-                row=product_row,
-                col=context.name.month_stock_in_and_out_col_index,
-            )
-
-        elif context.product.after - context.product.before < 0:
-            logger.info(msg="update stock in in worksheets")
-            stock_out_row: int = month_worksheet_reader.get_product_stock_out_row(
-                product_variant_id=context.product.product_variant_uuid
-            )
-            old_stock_out: int = month_worksheet_reader.get_product_stock_out(
-                product_row=stock_out_row,
-                stock_out_col=context.name.month_stock_in_and_out_col_index,
-            )
-            month_worksheet_writer.update_stock_out(
-                old_stock_out=old_stock_out,
-                amount= context.product.after - context.product.before,
-                row=stock_out_row,
-                col=context.name.month_stock_in_and_out_col_index,
-            )
-
-
 class DayProductDataEnsurer:
     def __init__(
             self,
@@ -302,8 +214,7 @@ class DayProductDataEnsurer:
         product_exist: bool = day_product_dataframe.product_exist(product_variant_id=self.product_data.product_variant_uuid)
 
         if not product_exist:
-            product_dataframe: DataFrame = day_product_dataframe.new_dataframe(product=self.product_data)
-            day_product_dataframe.add_new_product(product=product_dataframe)
+            day_product_dataframe.add_new_product(product=self.product_data)
             return day_product_dataframe
         
         return day_product_dataframe
@@ -319,18 +230,60 @@ class MonthProductDataEnsurer:
         self.worksheet: Worksheet = month_worksheet
         self.product_data: PaypalProductData = product_data
 
-    def ensure_day_product(self) -> MonthProductDataFrameManager:
+    def ensure_month_product(self) -> MonthProductDataFrameManager:
         worksheet_row_data:List[List[Any]] = self.worksheet.get_all_values()
         month_worksheet_formatted = dataframe_formatter(row_data=worksheet_row_data)
         month_product_dataframe = MonthProductDataFrameManager(month_dataframe=month_worksheet_formatted)
         product_exist: bool = month_product_dataframe.product_exist(product_variant_id=self.product_data.product_variant_uuid)
 
         if not product_exist:
-            product_dataframe: DataFrame = month_product_dataframe.new_dataframe(product=self.product_data)
-            month_product_dataframe.add_new_product(product=product_dataframe)
+            month_product_dataframe.add_new_product(product=self.product_data)
             return month_product_dataframe
         
         return month_product_dataframe
+    
+class DayDataframeUpdater:
+    def __init__(
+            self,
+            product_data:PaypalProductData,
+            day_product_dataframe: DayProductDataFrameManager
+            ) -> None:
+        self.product_data: PaypalProductData = product_data
+        self.day_product_dataframe: DayProductDataFrameManager =day_product_dataframe
+    
+    def update_dataframe(self):
+        if self.product_data.after - self.product_data.before > 0:
+            self.day_product_dataframe.increment_stock_in(
+                product_variant_id=self.product_data.product_variant_uuid,
+                amount=self.product_data.after - self.product_data.before)
+        
+        elif self.product_data.after - self.product_data.after < 0:
+            self.day_product_dataframe.increment_stock_out(
+                product_variant_id=self.product_data.product_variant_uuid,
+                amount=self.product_data.after - self.product_data.before)
+
+
+class MonthDataFrameUpdater:
+    def __init__(
+            self,
+            product_data:PaypalProductData,
+            month_product_dataframe: MonthProductDataFrameManager,
+            ) -> None:
+        self.product_data: PaypalProductData = product_data
+        self.month_product_dataframe: MonthProductDataFrameManager =month_product_dataframe
+    
+    def update_dataframe(self,context:Context):
+        if self.product_data.after - self.product_data.before > 0:
+            self.month_product_dataframe.increment_stock_in(
+                day=int(context.name.day),
+                product_variant_id=self.product_data.product_variant_uuid,
+                amount=self.product_data.after - self.product_data.before)
+        
+        elif self.product_data.after - self.product_data.after < 0:
+            self.month_product_dataframe.increment_stock_out(
+                day=int(context.name.day),
+                product_variant_id=self.product_data.product_variant_uuid,
+                amount=self.product_data.after - self.product_data.before)
 
 
         

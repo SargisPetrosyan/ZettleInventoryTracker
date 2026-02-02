@@ -49,7 +49,7 @@ class MonthProductDataFrameManager:
         self.sheet_data: DataFrame = pd.concat([self.month_dataframe,formatted_dataframe])
         logger.info(f"new product was added successfully")
 
-    def increment_stock_in(self, product_variant_id: str,day:int, samount: int) -> None:
+    def increment_stock_in(self, product_variant_id: str,day:int, amount: int) -> None:
         self.sheet_data.loc[self.sheet_data["ID"] == product_variant_id, str(day)] += int(amount)
 
     def increment_stock_out(self, product_variant_id: str, day:int, amount: int) -> None:
