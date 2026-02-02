@@ -1,10 +1,12 @@
 from datetime import  datetime, timedelta
 import json
 import logging
+from typing import Any
 from uuid import UUID
 import uuid
 from fastapi import Request
 from gspread.worksheet import JSONResponse
+from pandas import DataFrame
 import rich
 from app.constants import ART_CRAFT_FOLDER_ID, CAFFE_FOLDER_ID, DALASHOP_FOLDER_ID, MONTH_PRODUCT_STOCK_IN_COL_OFFSET, SHOP_SUBSCRIPTION_EVENTS, WEBHOOK_ENDPOINT_NAME
 from app.google_drive.client import GoogleDriveClient, SpreadSheetClient
@@ -177,3 +179,12 @@ def extract_row_from_notation(response:RowEditResponse) -> int:
     split: str = (range.split(":"))[1]
     row  = int(''.join(filter(lambda x: x.isdigit(), split)))
     return row
+
+def dataframe_formatter(row_data:list[list[Any]]) -> DataFrame:
+    sheet_data: DataFrame = DataFrame.from_records(
+    data=row_data[1:], 
+    columns=row_data[0], 
+    index="name"
+    ) 
+
+    return sheet_data

@@ -14,3 +14,4 @@ class ZettleCredentials(BaseModel):
 
 class ZettleNewAccessToken(BaseModel):
     access_token: str
+

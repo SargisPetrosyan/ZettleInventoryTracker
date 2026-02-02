@@ -1,7 +1,11 @@
+from calendar import month
 from os import name
-from gspread import Spreadsheet, Worksheet
+from typing import Any, List
+from gspread import Spreadsheet, ValueRange, Worksheet
+from h11 import Data
 from pandas import DataFrame
 from app.google_drive.context import Context
+from app.google_drive.dataframe_manager import DataframeFormatter, DayProductDataFrameManager, MonthProductDataFrameManager
 from app.google_drive.drive_manager import GoogleDriveFileManager
 from app.constants import (
     DAY_TEMPLATE_ID,
@@ -19,7 +23,8 @@ from app.google_drive.product_managers import (
 )
 
 from app.google_drive.sheet_manager import SpreadSheetFileManager
-from app.utils import get_folder_id_by_shop_id
+from app.models.product import PaypalProductData
+from app.utils import dataframe_formatter, get_folder_id_by_shop_id
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -198,47 +203,6 @@ class WorksheetExistenceEnsurer:
         return worksheet
 
 
-class DayProductExistenceEnsurer:
-    def __init__(
-        self,
-        day_worksheet: Worksheet,
-    ) -> None:
-        self.day_worksheet_reader = DayWorksheetProductReader(worksheet=day_worksheet)
-        self.day_worksheet_writer = DayWorksheetProductWriter(worksheet=day_worksheet)
-
-    def ensure_day_product(self, context: Context) -> None:
-        product_exist: int | None = self.day_worksheet_reader.product_exist(
-            product_variant_id=context.product.product_variant_uuid
-        )
-        if not product_exist:
-            logger.info(
-                msg=f"product by name '{context.product.name}' doesn't exist creating new"
-            )
-            self.day_worksheet_writer.add_new_product(context=context)
-            return None
-
-
-class MonthProductExistenceEnsurer:
-    def __init__(self, month_worksheet: Worksheet) -> None:
-        self.month_worksheet_reader: MonthWorksheetProductReader = (
-            MonthWorksheetProductReader(worksheet=month_worksheet)
-        )
-        self.month_worksheet_writer = MonthWorksheetProductWriter(
-            worksheet=month_worksheet
-        )
-
-    def ensure_month_product(self, context: Context) -> int | None:
-        product_exist: int | None = self.month_worksheet_reader.product_exist(
-            product_variant_uuid=context.product.product_variant_uuid
-        )
-        if not product_exist:
-            logger.info(
-                f"product by name '{context.product.name}' doesn't exist creating new"
-            )
-            self.month_worksheet_writer.add_new_product(context=context)
-            return
-
-
 class DayWorksheetValueUpdater:
     @staticmethod
     def update_day_worksheet(
@@ -320,13 +284,60 @@ class MonthWorksheetValueUpdater:
                 col=context.name.month_stock_in_and_out_col_index,
             )
 
-# class DataframeSpreadsheetManager:
-#     def __init__(self,worksheet:Worksheet) -> None:
-#         self.spreadsheet: Worksheet = worksheet
-#         worksheet_data = worksheet.get_all_values()
-#         self.spreadsheet_dataframe:DataFrame =DataFrame.from_records(
-#             data=sheet[1:], columns=sheet[0], index="name"
-#         )
+
+class DayProductDataEnsurer:
+    def __init__(
+            self,
+            day_worksheet:Worksheet,
+            product_data:PaypalProductData
+            )  -> None:
+        
+        self.worksheet: Worksheet = day_worksheet
+        self.product_data: PaypalProductData = product_data
+
+    def ensure_day_product(self) -> DayProductDataFrameManager:
+        worksheet_row_data:List[List[Any]] = self.worksheet.get_all_values()
+        day_worksheet_formatted: DataFrame = dataframe_formatter(row_data=worksheet_row_data)
+        day_product_dataframe = DayProductDataFrameManager(day_dataframe=day_worksheet_formatted)
+        product_exist: bool = day_product_dataframe.product_exist(product_variant_id=self.product_data.product_variant_uuid)
+
+        if not product_exist:
+            product_dataframe: DataFrame = day_product_dataframe.new_dataframe(product=self.product_data)
+            day_product_dataframe.add_new_product(product=product_dataframe)
+            return day_product_dataframe
+        
+        return day_product_dataframe
+    
+
+class MonthProductDataEnsurer:
+    def __init__(
+            self,
+            month_worksheet:Worksheet,
+            product_data:PaypalProductData
+            )  -> None:
+        
+        self.worksheet: Worksheet = month_worksheet
+        self.product_data: PaypalProductData = product_data
+
+    def ensure_day_product(self) -> MonthProductDataFrameManager:
+        worksheet_row_data:List[List[Any]] = self.worksheet.get_all_values()
+        month_worksheet_formatted = dataframe_formatter(row_data=worksheet_row_data)
+        month_product_dataframe = MonthProductDataFrameManager(month_dataframe=month_worksheet_formatted)
+        product_exist: bool = month_product_dataframe.product_exist(product_variant_id=self.product_data.product_variant_uuid)
+
+        if not product_exist:
+            product_dataframe: DataFrame = month_product_dataframe.new_dataframe(product=self.product_data)
+            month_product_dataframe.add_new_product(product=product_dataframe)
+            return month_product_dataframe
+        
+        return month_product_dataframe
 
 
-#     def process_updates_to_local_dataframe(self):
+        
+
+
+
+
+
+
+    

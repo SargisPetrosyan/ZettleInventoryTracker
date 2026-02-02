@@ -1,8 +1,8 @@
 
-import datetime
-import rich
+from typing import Any, List
+from gspread import ValueRange
 from app.google_drive.context import Context
-from app.google_drive.dataframe_manager import DayProductDataFrameManager, ProductDataframeManager
+from app.google_drive.dataframe_manager import DataframeFormatter, DayProductDataFrameManager
 from app.google_drive.drive_manager import GoogleDriveFileManager
 from app.google_drive.sheet_manager import SpreadSheetFileManager
 from app.constants import (
@@ -11,9 +11,9 @@ from app.constants import (
 from gspread.spreadsheet import Spreadsheet
 from gspread.worksheet import Worksheet
 from app.google_drive.services import (
-    DayProductExistenceEnsurer,
+    DayProductDataEnsurer,
     DaySpreadsheetExistenceEnsurer,
-    MonthProductExistenceEnsurer,
+    MonthProductDataEnsurer,
     MonthSpreadsheetExistenceEnsurer,
     MonthWorksheetValueUpdater,
     WorksheetExistenceEnsurer,
@@ -52,7 +52,7 @@ class DriveManager:
             spreadsheet_file_manager=self.spreadsheet_file_manager
         )
 
-    def process_data_to_drive(self, product: PaypalProductData) -> None:
+    def process_data_to_drive(self, products: list[PaypalProductData]) -> None:
 
         context = Context(product_manual=product)
 
@@ -86,3 +86,17 @@ class DriveManager:
             name=context.name.month_worksheet_name,
             template_spreadsheet_id=MONTHLY_TEMPLATE_ID,
         )
+        
+        # step 6 ensure product in day and month dataframe
+        for product in products:
+            day_product_ensurer = DayProductDataEnsurer(
+                day_worksheet=day_worksheet,
+                product_data=product)
+            
+            month_product_ensurer = MonthProductDataEnsurer(
+                month_worksheet=day_worksheet,
+                product_data=product)
+            
+            
+
+
