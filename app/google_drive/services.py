@@ -214,6 +214,7 @@ class DayProductDataEnsurer:
         day_worksheet_formatted: DataFrame = dataframe_formatter(row_data=worksheet_row_data)
         day_product_dataframe = DayProductDataFrameManager(day_dataframe=day_worksheet_formatted)
         product_exist: bool = day_product_dataframe.product_exist(product_variant_id=self.product_data.product_variant_uuid)
+        rich.print(day_worksheet_formatted.s)
 
         if not product_exist:
             day_product_dataframe.add_new_product(product=self.product_data)

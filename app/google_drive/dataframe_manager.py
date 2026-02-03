@@ -14,6 +14,7 @@ class DayProductDataFrameManager:
     
     def add_new_product(self,product:PaypalProductData) -> None:
         data = {
+            "name":product.name,
             "category": product.category_name, 
             "variant": product.variant_name,
             "cost_price": product.price,
@@ -56,7 +57,7 @@ class MonthProductDataFrameManager:
         self.sheet_data.loc[self.sheet_data["ID"] == product_variant_id, str(day)] += amount
     
     def product_exist(self, product_variant_id: str) -> bool:
-        return product_variant_id in self.sheet_data.values
+        return product_variant_id in self.month_dataframe.values
     
 
     
