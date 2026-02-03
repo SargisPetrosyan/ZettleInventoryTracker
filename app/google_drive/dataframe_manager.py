@@ -22,7 +22,7 @@ class DayProductDataFrameManager:
             "ID": product.product_variant_uuid,
     }
         formatted_dataframe:DataFrame = pd.DataFrame(data=data, index=[product.name])
-        self.sheet_data: DataFrame = pd.concat(objs=[self.sheet_data,formatted_dataframe])
+        self.sheet_data: DataFrame = pd.concat(objs=[self.day_dataframe,formatted_dataframe])
         logger.info(f"new product was added successfully")
     
     def increment_stock_in(self, product_variant_id: str, amount: int) -> None:
@@ -32,7 +32,7 @@ class DayProductDataFrameManager:
         self.sheet_data.loc[self.sheet_data["ID"] == product_variant_id, "stock_out"] += amount
     
     def product_exist(self, product_variant_id: str) -> bool:
-        return product_variant_id in self.sheet_data.values
+        return product_variant_id in self.day_dataframe.values
 
     def _convert_to_int(self) -> None:
         self.sheet_data[["stock_in", "stock_out","cost_price"]] = self.sheet_data[["stock_in", "stock_out","cost_price"]].astype(int)

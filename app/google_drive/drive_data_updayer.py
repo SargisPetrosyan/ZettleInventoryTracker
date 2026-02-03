@@ -98,7 +98,7 @@ class DriveManager:
             day_product_dataframe: DayProductDataFrameManager = day_product_ensurer.ensure_day_product()
             
             month_product_ensurer = MonthProductDataEnsurer(
-                month_worksheet=day_worksheet,
+                month_worksheet=month_worksheet,
                 product_data=product)
             
             # step 5 update day and month dataframe

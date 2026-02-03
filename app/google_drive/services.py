@@ -4,6 +4,7 @@ from typing import Any, List
 from gspread import Spreadsheet, ValueRange, Worksheet
 from h11 import Data
 from pandas import DataFrame
+import rich
 from app.google_drive.context import Context
 from app.google_drive.dataframe_manager import DayProductDataFrameManager, MonthProductDataFrameManager
 from app.google_drive.drive_manager import GoogleDriveFileManager
@@ -193,6 +194,7 @@ class WorksheetExistenceEnsurer:
                 spreadsheet=spreadsheet,
                 templates_spreadsheet_id=template_spreadsheet_id,
             )
+            
             return worksheet
         return worksheet
 
@@ -215,6 +217,7 @@ class DayProductDataEnsurer:
 
         if not product_exist:
             day_product_dataframe.add_new_product(product=self.product_data)
+            rich.print(day_product_dataframe.sheet_data)
             return day_product_dataframe
         
         return day_product_dataframe
@@ -240,6 +243,7 @@ class MonthProductDataEnsurer:
             month_product_dataframe.add_new_product(product=self.product_data)
             return month_product_dataframe
         
+        rich.print(month_product_dataframe.sheet_data)
         return month_product_dataframe
     
 class DayDataframeUpdater:
