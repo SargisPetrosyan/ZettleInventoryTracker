@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Sequence
 from sqlalchemy import Engine
-from sqlmodel import Field, Session, select
+from sqlmodel import  Session, select
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
 from app.db.models import InventoryBalanceUpdateModel
 

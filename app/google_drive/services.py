@@ -24,12 +24,6 @@ from app.constants import (
     MONTHLY_TEMPLATE_ID)
 from gspread.spreadsheet import Spreadsheet
 from gspread.worksheet import Worksheet
-from app.google_drive.services import (
-    DaySpreadsheetExistenceEnsurer,
-    MonthSpreadsheetExistenceEnsurer,
-    WorksheetExistenceEnsurer,
-    YearFolderExistenceEnsurer,
-)
 from app.models.product import PaypalProductData
 import logging
 

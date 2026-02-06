@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+
+from sqlalchemy import Engine
 from app.constants import ART_AND_CRAFT_NAME, CAFE_NAME, DALA_SHOP_NAME, HOUR_INTERVAL
 from app.core.config import Database
 from app.db.schemes import InventoryUpdateRepository
@@ -12,9 +14,9 @@ from app.models.product import PaypalProductData, ProductData
 from app.zettle.services import InventoryManualDataCollector
 
 class HourlyWorkflowRunner:
-    def __init__(self,engine:Database) -> None:
-        self.engine: Database = engine
-        self.shops = (DALA_SHOP_NAME)
+    def __init__(self,database:Database) -> None:
+        self.engine: Engine = database.engine
+        self.shops = (DALA_SHOP_NAME,)
         self.google_drive_client = GoogleDriveClient()
         self.spreadsheet_file_client = SpreadSheetClient()
         self.google_drive_file_manager = GoogleDriveFileManager(client=self.google_drive_client)
@@ -28,7 +30,6 @@ class HourlyWorkflowRunner:
         end_date: datetime = datetime.strptime("2026-01-13 20:01:18","%Y-%m-%d %H:%M:%S")
 
         repo_updater: InventoryUpdateRepository = InventoryUpdateRepository(engine=self.engine)
-
         
         for name in self.shops:
             manual_collector = InventoryManualDataCollector(
