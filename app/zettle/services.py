@@ -1,17 +1,20 @@
 from os import name
+import time
 from typing import Any, Sequence
 from uuid import UUID
 import rich
 from sqlalchemy import Engine
 from app.db.schemes import InventoryUpdateRepository
 from app.models.inventory import InventoryUpdateData,InventoryBalanceUpdateValidation, Payload
-from app.models.product import SpreadsheetProductData,ProductData,ListOfPurchases
+from app.models.product import PaypalProductData,ProductData,ListOfPurchases
 from app.utils import EnvVariablesGetter, utc_to_local
 from app.zettle.data_fetchers import ProductDataFetcher, PurchasesFetcher
 from datetime import datetime, timedelta
-from app.db.models import InventoryBalanceUpdateModel 
+from app.db.models import InventoryBalanceUpdateModel
+from app.utils import time_offset
 
 import logging
+
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -119,9 +122,9 @@ class ManualProductData:
         self.manual_changes: dict[tuple[UUID,UUID],InventoryUpdateData] = manual_changes
         self.organization_id: str = organization_id
         self.data_fetcher:ProductDataFetcher = product_data_fetcher
-        self.list_of_products:list[SpreadsheetProductData] = []
+        self.list_of_products:list[PaypalProductData] = []
     
-    def get_manual_changes_product_data(self) -> list[SpreadsheetProductData]:
+    def get_manual_changes_product_data(self) -> list[PaypalProductData]:
         for key,value in self.manual_changes.items():
             product_data:dict = self.data_fetcher.get_product_data(
                 product_uuid=str(object=key[0]), 
@@ -131,7 +134,7 @@ class ManualProductData:
             
             for variant in validated_product_data.variants:
                 if variant.uuid == key[1]:
-                    product:SpreadsheetProductData = SpreadsheetProductData(
+                    product:PaypalProductData = PaypalProductData(
                         name=validated_product_data.name,
                         variant_name=str(object=variant.name),
                         product_variant_uuid=f"{str(key[0])},{str(key[1])}",
@@ -154,7 +157,6 @@ class ManualProductData:
                     
         return self.list_of_products
 
-
 class InventoryManualDataCollector:
     def __init__(
             self,repo_updater:InventoryUpdateRepository, 
@@ -166,12 +168,12 @@ class InventoryManualDataCollector:
         self.repo_updater:InventoryUpdateRepository = repo_updater
         self._purchases_joined_joined:dict[frozenset[UUID], int] = {}
         self.variable_getter:EnvVariablesGetter = EnvVariablesGetter()
-        self.end_date:datetime = datetime.now()
         self.shop_name: str = shop_name
         self.start_date: datetime = start_date
         self.end_date:datetime = end_date
+        self.utc_offset: timedelta = time_offset(self.start_date)
 
-    def get_manual_changed_products(self) -> list[SpreadsheetProductData] | None:
+    def get_manual_changed_products(self) -> list[PaypalProductData] | None:
         self.variable_getter = EnvVariablesGetter()
         organization_id: str = str(object=UUID(hex=self.variable_getter.\
             get_env_variable(variable_name=f"ZETTLE_{self.shop_name.upper()}_ORGANIZATION_UUID")))
@@ -197,10 +199,11 @@ class InventoryManualDataCollector:
             start_date=self.start_date,
             end_date=self.end_date)
         
+        
         # get purchases by time interval
         purchases: dict[Any,Any] = self.purchase_fetcher.get_purchases(
-            start_date=self.start_date - timedelta(hours=1),
-            end_date=self.end_date - timedelta(hours=1),
+            start_date=self.start_date - self.utc_offset,
+            end_date=self.end_date - self.utc_offset,
         )
 
         validate_purchases:ListOfPurchases = ListOfPurchases.model_validate(obj=purchases)
@@ -221,7 +224,7 @@ class InventoryManualDataCollector:
             organization_id=organization_id,
             product_data_fetcher=product_data_fetcher)
         
-        product_data_with_manual_changes:list[SpreadsheetProductData] =  product_data_manual.get_manual_changes_product_data()
+        product_data_with_manual_changes:list[PaypalProductData] =  product_data_manual.get_manual_changes_product_data()
         return product_data_with_manual_changes
 
 

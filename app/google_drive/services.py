@@ -1,4 +1,4 @@
-from os import name
+
 from gspread import Spreadsheet, Worksheet
 from app.google_drive.context import Context
 from app.google_drive.drive_manager import GoogleDriveFileManager
@@ -16,6 +16,23 @@ from app.google_drive.product_managers import (
     MonthWorksheetProductReader,
     MonthWorksheetProductWriter,
 )
+from app.google_drive.context import Context
+from app.google_drive.drive_manager import GoogleDriveFileManager
+from app.google_drive.sheet_manager import SpreadSheetFileManager
+from app.constants import (
+    DAY_TEMPLATE_ID, 
+    MONTHLY_TEMPLATE_ID)
+from gspread.spreadsheet import Spreadsheet
+from gspread.worksheet import Worksheet
+from app.google_drive.services import (
+    DaySpreadsheetExistenceEnsurer,
+    MonthSpreadsheetExistenceEnsurer,
+    WorksheetExistenceEnsurer,
+    YearFolderExistenceEnsurer,
+)
+from app.models.product import PaypalProductData
+import logging
+
 
 from app.google_drive.sheet_manager import SpreadSheetFileManager
 from app.utils import get_folder_id_by_shop_id
@@ -201,24 +218,26 @@ class DayProductExistenceEnsurer:
     def __init__(
         self,
         day_worksheet: Worksheet,
+        context:Context
     ) -> None:
         self.day_worksheet_reader = DayWorksheetProductReader(worksheet=day_worksheet)
         self.day_worksheet_writer = DayWorksheetProductWriter(worksheet=day_worksheet)
+        self.context: Context = context
 
-    def ensure_day_product(self, context: Context) -> None:
+    def ensure_day_product(self,product:PaypalProductData) -> None:
         product_exist: int | None = self.day_worksheet_reader.product_exist(
-            product_variant_id=context.product.product_variant_uuid
+            product_variant_id=product.product_variant_uuid
         )
         if not product_exist:
             logger.info(
-                msg=f"product by name '{context.product.name}' doesn't exist creating new"
+                msg=f"product by name '{product.name}' doesn't exist creating new"
             )
-            self.day_worksheet_writer.add_new_product(context=context)
+            self.day_worksheet_writer.add_new_product(context=self.context)
             return None
 
 
 class MonthProductExistenceEnsurer:
-    def __init__(self, month_worksheet: Worksheet) -> None:
+    def __init__(self, month_worksheet: Worksheet,context:Context) -> None:
         self.month_worksheet_reader: MonthWorksheetProductReader = (
             MonthWorksheetProductReader(worksheet=month_worksheet)
         )
@@ -226,15 +245,17 @@ class MonthProductExistenceEnsurer:
             worksheet=month_worksheet
         )
 
-    def ensure_month_product(self, context: Context) -> int | None:
+        self.context: Context = context
+
+    def ensure_month_product(self,product:PaypalProductData) -> int | None:
         product_exist: int | None = self.month_worksheet_reader.product_exist(
-            product_variant_uuid=context.product.product_variant_uuid
+            product_variant_uuid=product.product_variant_uuid
         )
         if not product_exist:
             logger.info(
-                f"product by name '{context.product.name}' doesn't exist creating new"
+                f"product by name '{product.name}' doesn't exist creating new"
             )
-            self.month_worksheet_writer.add_new_product(context=context)
+            self.month_worksheet_writer.add_new_product(context=self.context)
             return
 
 
@@ -318,3 +339,65 @@ class MonthWorksheetValueUpdater:
                 row=stock_out_row,
                 col=context.name.month_stock_in_and_out_col_index,
             )
+
+
+class DriveFileStructureEnsurer:
+    def __init__(
+        self,
+        google_drive_file_manager: GoogleDriveFileManager,
+        spreadsheet_file_manager: SpreadSheetFileManager,
+        ) -> None:
+        self.google_drive_file_manager: GoogleDriveFileManager = (
+            google_drive_file_manager
+        )
+        self.spreadsheet_file_manager: SpreadSheetFileManager = spreadsheet_file_manager
+        self.year_folder_manager = YearFolderExistenceEnsurer(
+            drive_file_manager=self.google_drive_file_manager,
+            spreadsheet_file_manege=self.spreadsheet_file_manager,
+        )
+        self.day_spreadsheet_existence_ensurer = DaySpreadsheetExistenceEnsurer(
+            drive_file_manager=self.google_drive_file_manager,
+            spreadsheet_file_manager=self.spreadsheet_file_manager,
+        )
+        self.monthly_spreadsheet_existence_ensurer = MonthSpreadsheetExistenceEnsurer(
+            drive_file_manager=self.google_drive_file_manager,
+            spreadsheet_file_manager=self.spreadsheet_file_manager,
+        )
+        self.worksheet_existence_ensurer = WorksheetExistenceEnsurer(
+            spreadsheet_file_manager=self.spreadsheet_file_manager
+        )
+
+    def ensure_drive_file_structure(self, context: Context) -> None:
+
+        # step 1 ensure year folder:
+        self.year_folder_manager.ensure_year_folder(context=context)
+
+        # step 2.1 ensure month spreadsheet
+        month_spreadsheet: Spreadsheet = (
+            self.monthly_spreadsheet_existence_ensurer.ensure_month_spreadsheet(
+                context=context
+            )
+        )
+
+        # step 2.2 ensure day spreadsheet
+        day_spreadsheet: Spreadsheet = (
+            self.day_spreadsheet_existence_ensurer.ensure_day_spreadsheet(
+                context=context,
+            )
+        )
+
+        # step 3.1 ensure day and month worksheets:
+        day_worksheet: Worksheet = self.worksheet_existence_ensurer.ensure_worksheet(
+            spreadsheet=day_spreadsheet,
+            name=context.name.day_worksheet_name,
+            template_spreadsheet_id=DAY_TEMPLATE_ID,
+        )
+
+        # step 3.2 ensure day worksheet:
+        month_worksheet: Worksheet = self.worksheet_existence_ensurer.ensure_worksheet(
+            spreadsheet=month_spreadsheet,
+            name=context.name.month_worksheet_name,
+            template_spreadsheet_id=MONTHLY_TEMPLATE_ID,
+        )
+
+        context.month_worksheet, context.day_worksheet = month_worksheet,day_worksheet

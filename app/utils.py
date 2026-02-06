@@ -1,11 +1,9 @@
 from datetime import  datetime, timedelta
 import json
 import logging
-from uuid import UUID
-import uuid
 from fastapi import Request
 from gspread.worksheet import JSONResponse
-import rich
+import pytz
 from app.constants import ART_CRAFT_FOLDER_ID, CAFFE_FOLDER_ID, DALASHOP_FOLDER_ID, MONTH_PRODUCT_STOCK_IN_COL_OFFSET, SHOP_SUBSCRIPTION_EVENTS, WEBHOOK_ENDPOINT_NAME
 from app.google_drive.client import GoogleDriveClient, SpreadSheetClient
 from app.google_drive.drive_manager import GoogleDriveFileManager
@@ -13,9 +11,9 @@ from app.google_drive.sheet_manager import SpreadSheetFileManager
 from datetime import datetime, timezone
 import os
 from app.constants import (
-    DALA_SHOP,
-    ART_AND_CRAFT,
-    CAFE,
+    DALA_SHOP_NAME,
+    ART_AND_CRAFT_NAME,
+    CAFE_NAME,
 )
 from app.models.google_drive import RowEditResponse
 from app.models.product import Category, Price
@@ -139,9 +137,9 @@ class DateRangeBuilder:
 class OrganizationsNameMappedId:
     def __init__(self) -> None:
         self.organizations: dict[str | None, str] = {
-            os.getenv("ZETTLE_ART_ORGANIZATION_UUID"):ART_AND_CRAFT,
-            os.getenv("ZETTLE_DALA_ORGANIZATION_UUID"):DALA_SHOP,
-            os.getenv("ZETTLE_CAFE_ORGANIZATION_UUID"):CAFE,
+            os.getenv("ZETTLE_ART_ORGANIZATION_UUID"):ART_AND_CRAFT_NAME,
+            os.getenv("ZETTLE_DALA_ORGANIZATION_UUID"):DALA_SHOP_NAME,
+            os.getenv("ZETTLE_CAFE_ORGANIZATION_UUID"):CAFE_NAME,
         } 
 
     def get_name_by_id(self,shop_id:str) -> str:
@@ -177,3 +175,8 @@ def extract_row_from_notation(response:RowEditResponse) -> int:
     split: str = (range.split(":"))[1]
     row  = int(''.join(filter(lambda x: x.isdigit(), split)))
     return row
+
+
+def time_offset(time:datetime) -> timedelta:
+    stockholm_tz = pytz.timezone('Europe/Stockholm')
+    return stockholm_tz.utcoffset(time)

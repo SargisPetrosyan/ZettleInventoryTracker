@@ -1,107 +1,38 @@
-
 from app.google_drive.context import Context
-from app.google_drive.drive_manager import GoogleDriveFileManager
-from app.google_drive.sheet_manager import SpreadSheetFileManager
-from app.constants import (
-    DAY_TEMPLATE_ID, 
-    MONTHLY_TEMPLATE_ID)
-from gspread.spreadsheet import Spreadsheet
-from gspread.worksheet import Worksheet
+from app.google_drive.product_managers import DayWorksheetProductReader
 from app.google_drive.services import (
-    DayProductExistenceEnsurer,
-    DaySpreadsheetExistenceEnsurer,
-    MonthProductExistenceEnsurer,
-    MonthSpreadsheetExistenceEnsurer,
-    MonthWorksheetValueUpdater,
-    WorksheetExistenceEnsurer,
-    YearFolderExistenceEnsurer,
-    DayWorksheetValueUpdater,
-)
-from app.models.product import SpreadsheetProductData
-import logging
-
-logger: logging.Logger = logging.getLogger(name=__name__)
+        DayProductExistenceEnsurer,
+        DayWorksheetValueUpdater,
+        MonthProductExistenceEnsurer,
+        MonthWorksheetValueUpdater)
+from app.models.product import PaypalProductData
 
 
-class DriveManager:
-    def __init__(
-        self,
-        google_drive_file_manager: GoogleDriveFileManager,
-        spreadsheet_file_manager: SpreadSheetFileManager,
-        ) -> None:
-        self.google_drive_file_manager: GoogleDriveFileManager = (
-            google_drive_file_manager
-        )
-        self.spreadsheet_file_manager: SpreadSheetFileManager = spreadsheet_file_manager
-        self.year_folder_manager = YearFolderExistenceEnsurer(
-            drive_file_manager=self.google_drive_file_manager,
-            spreadsheet_file_manege=self.spreadsheet_file_manager,
-        )
-        self.day_spreadsheet_existence_ensurer = DaySpreadsheetExistenceEnsurer(
-            drive_file_manager=self.google_drive_file_manager,
-            spreadsheet_file_manager=self.spreadsheet_file_manager,
-        )
-        self.monthly_spreadsheet_existence_ensurer = MonthSpreadsheetExistenceEnsurer(
-            drive_file_manager=self.google_drive_file_manager,
-            spreadsheet_file_manager=self.spreadsheet_file_manager,
-        )
-        self.worksheet_existence_ensurer = WorksheetExistenceEnsurer(
-            spreadsheet_file_manager=self.spreadsheet_file_manager
-        )
+class DriveSpreadsheetUpdater:
+    def __init__(self,context:Context) -> None:
+        self.context: Context = context
+    
+    def process_data_to_worksheet(self,products: list[PaypalProductData]) -> None:
 
-    def process_data_to_drive(self, product: SpreadsheetProductData) -> None:
+        for product in products:
+            # step 4.1 ensure day worksheet product:
+            day_product = DayProductExistenceEnsurer(day_worksheet=self.context.day_worksheet, context=self.context)
+            day_product.ensure_day_product(product=product)
 
-        context = Context(product_manual=product)
+            # step 4.2 ensure day worksheet product:
+            month_product = MonthProductExistenceEnsurer(month_worksheet=self.context.month_worksheet,context=self.context)
+            month_product.ensure_month_product(product=product)
 
-        # step 1 ensure year folder:
-        self.year_folder_manager.ensure_year_folder(context=context)
-
-        # step 2.1 ensure month spreadsheet
-        month_spreadsheet: Spreadsheet = (
-            self.monthly_spreadsheet_existence_ensurer.ensure_month_spreadsheet(
-                context=context
+            # step 5.1 update day remote worksheet
+            DayWorksheetValueUpdater.update_day_worksheet(
+                day_worksheet_reader=day_product.day_worksheet_reader,
+                day_worksheet_writer=day_product.day_worksheet_writer,
+                context=self.context
             )
-        )
 
-        # step 2.2 ensure day spreadsheet
-        day_spreadsheet: Spreadsheet = (
-            self.day_spreadsheet_existence_ensurer.ensure_day_spreadsheet(
-                context=context,
+            # step 5.2 update month remote worksheet
+            MonthWorksheetValueUpdater.update_month_worksheet(
+                month_worksheet_reader=month_product.month_worksheet_reader,
+                month_worksheet_writer=month_product.month_worksheet_writer,
+                context=self.context,
             )
-        )
-
-        # step 3.1 ensure day and month worksheets:
-        day_worksheet: Worksheet = self.worksheet_existence_ensurer.ensure_worksheet(
-            spreadsheet=day_spreadsheet,
-            name=context.name.day_worksheet_name,
-            template_spreadsheet_id=DAY_TEMPLATE_ID,
-        )
-
-        # step 3.2 ensure day worksheet:
-        month_worksheet: Worksheet = self.worksheet_existence_ensurer.ensure_worksheet(
-            spreadsheet=month_spreadsheet,
-            name=context.name.month_worksheet_name,
-            template_spreadsheet_id=MONTHLY_TEMPLATE_ID,
-        )
-
-        # step 4.1 ensure day worksheet product:
-        day_product = DayProductExistenceEnsurer(day_worksheet=day_worksheet)
-        day_product.ensure_day_product(context=context)
-
-        # step 4.2 ensure day worksheet product:
-        month_product = MonthProductExistenceEnsurer(month_worksheet=month_worksheet)
-        month_product.ensure_month_product(context=context)
-
-        # step 5.1 update day remote worksheet
-        DayWorksheetValueUpdater.update_day_worksheet(
-            day_worksheet_reader=day_product.day_worksheet_reader,
-            day_worksheet_writer=day_product.day_worksheet_writer,
-            context=context,
-        )
-
-        # step 5.2 update month remote worksheet
-        MonthWorksheetValueUpdater.update_month_worksheet(
-            month_worksheet_reader=month_product.month_worksheet_reader,
-            month_worksheet_writer=month_product.month_worksheet_writer,
-            context=context,
-        )

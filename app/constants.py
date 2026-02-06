@@ -54,10 +54,11 @@ MONTH_PRODUCT_DATA_CELL_RANGE: str = "A2:D2"
 SHOP_SUBSCRIPTION_EVENTS:list[str] = ["InventoryBalanceChanged"]
 
 #Shop names:
-DALA_SHOP = "dala"
-ART_AND_CRAFT = "art"
-CAFE = "cafe"
+DALA_SHOP_NAME = "dala"
+ART_AND_CRAFT_NAME = "art"
+CAFE_NAME = "cafe"
 
+HOUR_INTERVAL:int = 1
 
 
 
