@@ -26,8 +26,8 @@ class HourlyWorkflowRunner:
         # start_date: datetime = datetime.now()
         # end_date: datetime = start_date -timedelta(hours=HOUR_INTERVAL)
 
-        start_date: datetime = datetime.strptime("2026-01-13 10:36:03","%Y-%m-%d %H:%M:%S")
-        end_date: datetime = datetime.strptime("2026-01-13 15:42:31","%Y-%m-%d %H:%M:%S")
+        start_date: datetime = datetime.strptime("2026-01-13 11:36:03","%Y-%m-%d %H:%M:%S")
+        end_date: datetime = datetime.strptime("2026-01-13 14:57:54","%Y-%m-%d %H:%M:%S")
 
         repo_updater: InventoryUpdateRepository = InventoryUpdateRepository(engine=self.engine)
         
@@ -44,17 +44,18 @@ class HourlyWorkflowRunner:
             if not list_of_manual_products:
                 continue
 
-            context =Context(product=list_of_manual_products)
+            for product in list_of_manual_products:
+                context =Context(product=product)
+                # step 2 check if google drive hade proper file structure
+                drive_file_ensurer = DriveFileStructureEnsurer(
+                    google_drive_file_manager=self.google_drive_file_manager,
+                    spreadsheet_file_manager=self.spreadsheet_manager)
+                
+                drive_file_ensurer.ensure_drive_file_structure(context=context)
 
-            # step 2 check if google drive hade proper file structure
-            drive_file_ensurer = DriveFileStructureEnsurer(
-                google_drive_file_manager=self.google_drive_file_manager,
-                spreadsheet_file_manager=self.spreadsheet_manager)
-            
-            drive_file_ensurer.ensure_drive_file_structure(context=context)
-    
-            drive_file_updater = DriveSpreadsheetUpdater(context=context)
-            drive_file_updater.process_data_to_worksheet(products=list_of_manual_products)
+                context.product = product
+                drive_file_updater = DriveSpreadsheetUpdater(context=context)
+                drive_file_updater.process_data_to_worksheet()
 
 
         

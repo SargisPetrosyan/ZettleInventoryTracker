@@ -10,15 +10,15 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 class Context:
     def __init__(
         self,
-        product: list[PaypalProductData],
+        product: PaypalProductData,
     ) -> None:
         
         self._parent_folder_id: str | None = None
         self._year_folder_id: str | None = None
         self._day_spreadsheet_id: str | None = None
         self._month_spreadsheet_id: str | None = None
-        self.name:FileName = FileName(date=product[0].timestamp)
-        self._product:PaypalProductData | None= None
+        self.product:PaypalProductData = product
+        self.name:FileName = FileName(date=self.product.timestamp)
         self._month_worksheet:Worksheet | None= None
         self._day_worksheet:Worksheet | None= None
 
@@ -56,14 +56,8 @@ class Context:
     @property
     def day_worksheet(self) -> Worksheet:
         if not self._day_worksheet:
-            raise TypeError("month worksheet can't be NONE")
+            raise TypeError("day worksheet can't be NONE")
         return self._day_worksheet
-
-    @property
-    def product(self) -> PaypalProductData:
-        if not self._product:
-            raise TypeError("month worksheet can't be NONE")
-        return self._product
 
 
     @parent_folder_id.setter
@@ -89,8 +83,3 @@ class Context:
     @month_worksheet.setter
     def month_worksheet(self, worksheet: Worksheet) -> None:
         self._month_worksheet = worksheet
-
-    @product.setter
-    def product(self, product: PaypalProductData) -> None:
-        self._product = product
-
