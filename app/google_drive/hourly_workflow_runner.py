@@ -26,8 +26,8 @@ class HourlyWorkflowRunner:
         # start_date: datetime = datetime.now()
         # end_date: datetime = start_date -timedelta(hours=HOUR_INTERVAL)
 
-        start_date: datetime = datetime.strptime("2026-01-13 10:00:00","%Y-%m-%d %H:%M:%S")
-        end_date: datetime = datetime.strptime("2026-01-13 20:01:18","%Y-%m-%d %H:%M:%S")
+        start_date: datetime = datetime.strptime("2026-01-13 10:36:03","%Y-%m-%d %H:%M:%S")
+        end_date: datetime = datetime.strptime("2026-01-13 15:42:31","%Y-%m-%d %H:%M:%S")
 
         repo_updater: InventoryUpdateRepository = InventoryUpdateRepository(engine=self.engine)
         
@@ -52,6 +52,7 @@ class HourlyWorkflowRunner:
                 spreadsheet_file_manager=self.spreadsheet_manager)
             
             drive_file_ensurer.ensure_drive_file_structure(context=context)
+    
             drive_file_updater = DriveSpreadsheetUpdater(context=context)
             drive_file_updater.process_data_to_worksheet(products=list_of_manual_products)
 

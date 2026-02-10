@@ -177,6 +177,6 @@ def extract_row_from_notation(response:RowEditResponse) -> int:
     return row
 
 
-def time_offset(time:datetime) -> timedelta:
+def time_offset() -> timedelta:
     stockholm_tz = pytz.timezone('Europe/Stockholm')
-    return stockholm_tz.utcoffset(time)
+    return stockholm_tz.utcoffset(datetime.now())

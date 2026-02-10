@@ -171,7 +171,7 @@ class InventoryManualDataCollector:
         self.shop_name: str = shop_name
         self.start_date: datetime = start_date
         self.end_date:datetime = end_date
-        self.utc_offset: timedelta = time_offset(self.start_date)
+        self.utc_offset: timedelta = time_offset()
 
     def get_manual_changed_products(self) -> list[PaypalProductData] | None:
         self.variable_getter = EnvVariablesGetter()
