@@ -1,5 +1,4 @@
 import os.path
-from webbrowser import get
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
