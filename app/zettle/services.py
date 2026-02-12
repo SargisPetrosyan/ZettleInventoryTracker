@@ -83,8 +83,6 @@ class PurchaseDataJoiner:
 
         for purchases_iter in validated_purchases.purchases:
             for product_iter in purchases_iter.products:
-                if purchases_iter.refund:
-                    continue 
                 key:tuple[UUID,UUID] = (product_iter.productUuid, product_iter.variantUuid)
                 quantity:int = product_iter.quantity
                 if key not in self._purchases_joined:
@@ -205,8 +203,9 @@ class InventoryManualDataCollector:
             start_date=self.start_date - self.utc_offset,
             end_date=self.end_date - self.utc_offset,
         )
-
+        rich.print(purchases)
         validate_purchases:ListOfPurchases = ListOfPurchases.model_validate(obj=purchases)
+
         purchases_data_merged: dict[tuple[UUID,UUID], int] = purchases_joiner.join_purchase_update_data(purchases=validate_purchases)
 
         # minus purchases changes to get manual ones
