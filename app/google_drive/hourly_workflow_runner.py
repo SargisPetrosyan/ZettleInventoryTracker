@@ -27,8 +27,8 @@ class HourlyWorkflowRunner:
         # start_date: datetime = datetime.now()
         # end_date: datetime = start_date - timedelta(hours=HOUR_INTERVAL)
 
-        start_date: datetime = datetime.strptime("2026-02-11 13:00:00","%Y-%m-%d %H:%M:%S")
-        end_date: datetime = datetime.strptime("2026-02-11 14:00:00","%Y-%m-%d %H:%M:%S")
+        start_date: datetime = datetime.strptime("2026-02-11 10:00:00","%Y-%m-%d %H:%M:%S")
+        end_date: datetime = datetime.strptime("2026-02-11 20:00:00","%Y-%m-%d %H:%M:%S")
 
         repo_updater: InventoryUpdateRepository = InventoryUpdateRepository(engine=self.engine)
         
