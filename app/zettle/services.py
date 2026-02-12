@@ -1,8 +1,7 @@
-from os import name
-import time
+
 from typing import Any, Sequence
 from uuid import UUID
-import rich
+from pydantic import ValidationError
 from sqlalchemy import Engine
 from app.db.schemes import InventoryUpdateRepository
 from app.models.inventory import InventoryUpdateData,InventoryBalanceUpdateValidation, Payload
@@ -53,7 +52,6 @@ class InventoryUpdatesDataJoiner:
         self._inventory_update_joined:dict[tuple[UUID,UUID], InventoryUpdateData] = {}
     
     def join_inventory_update_data(self) -> dict[tuple[UUID,UUID], InventoryUpdateData]:
-        # fetch stored inventory updates
         logger.info(msg="start inventor data joining")
         for update in self.inventory_changes:
             key:tuple[UUID,UUID] = (update.product_id, update.variant_id)
@@ -79,6 +77,7 @@ class PurchaseDataJoiner:
     def join_purchase_update_data(self,purchases:ListOfPurchases) -> dict[tuple[UUID,UUID], int]:
         # fetch stored inventory updates
 
+        logger.info("start joining purchases data")
         validated_purchases:ListOfPurchases = ListOfPurchases.model_validate(obj=purchases)
 
         for purchases_iter in validated_purchases.purchases:
@@ -103,6 +102,7 @@ class InventoryManualChangesChecker:
         self.marge_purchases_update: dict[tuple[UUID,UUID],int] = purchases_merged
 
     def get_manual_changes(self) -> dict[tuple[UUID, UUID], InventoryUpdateData]:
+        logger.info("get manual changes comparing purchases and db result")
         for purchase, value in self.marge_purchases_update.items():
             self.marge_inventory_update[purchase].updated_value = self.marge_inventory_update[purchase].updated_value + value
             if self.marge_inventory_update[purchase].stock == self.marge_inventory_update[purchase].updated_value:
@@ -123,6 +123,7 @@ class ManualProductData:
         self.list_of_products:list[PaypalProductData] = []
     
     def get_manual_changes_product_data(self) -> list[PaypalProductData]:
+        logger.info("get manual changed product data ")
         for key,value in self.manual_changes.items():
             product_data:dict = self.data_fetcher.get_product_data(
                 product_uuid=str(object=key[0]), 
@@ -172,6 +173,8 @@ class InventoryManualDataCollector:
         self.utc_offset: timedelta = time_offset()
 
     def get_manual_changed_products(self) -> list[PaypalProductData] | None:
+        
+        logger.info('get manual changed products')
         self.variable_getter = EnvVariablesGetter()
         organization_id: str = str(object=UUID(hex=self.variable_getter.\
             get_env_variable(variable_name=f"ZETTLE_{self.shop_name.upper()}_ORGANIZATION_UUID")))
@@ -182,6 +185,7 @@ class InventoryManualDataCollector:
             end_date=self.end_date)
         
         if not inventory_updates:
+            logger.info(f"other was not any changes for time interval start:'{self.start_date}', end:'{self.end_date}'")
             return None
         
         # inventory update data joining
@@ -203,9 +207,12 @@ class InventoryManualDataCollector:
             start_date=self.start_date - self.utc_offset,
             end_date=self.end_date - self.utc_offset,
         )
-        rich.print(purchases)
-        validate_purchases:ListOfPurchases = ListOfPurchases.model_validate(obj=purchases)
-
+        try:
+            validate_purchases:ListOfPurchases = ListOfPurchases.model_validate(obj=purchases)
+        except ValidationError:
+            logger.critical("purchases can't pass validation") 
+            raise
+        
         purchases_data_merged: dict[tuple[UUID,UUID], int] = purchases_joiner.join_purchase_update_data(purchases=validate_purchases)
 
         # minus purchases changes to get manual ones

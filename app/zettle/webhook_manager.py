@@ -9,7 +9,6 @@ from app.utils import CredentialContext
 from app.zettle.auth import ZettleCredentialsManager
 load_dotenv()
 
-
 logger: logging.Logger = logging.getLogger(name=__name__)
 
 class WebhookManager(ABC):

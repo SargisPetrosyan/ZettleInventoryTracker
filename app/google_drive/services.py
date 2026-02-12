@@ -97,7 +97,9 @@ class YearFolderExistenceEnsurer:
                 title=WORKSHEET_SAMPLE_NAME
             )
             worksheet.update_title(title=context.name.day)
-        context.year_folder_id = year_folder_id
+        else:
+            logger.info(msg=f"year folder exist")
+            context.year_folder_id = year_folder_id
 
 
 class DaySpreadsheetExistenceEnsurer:
@@ -110,9 +112,7 @@ class DaySpreadsheetExistenceEnsurer:
         self.spreadsheet_file_manager: SpreadSheetFileManager = spreadsheet_file_manager
 
     def ensure_day_spreadsheet(self, context: Context) -> Spreadsheet:
-        if not context.year_folder_id:
-            raise ValueError("year folder id not exist")
-
+        logger.info("ensure if day spreadsheet exist")
         spreadsheet_id: str | None = self.drive_file_manager.get_spreadsheet_id_by_name(
             spreadsheet_name=context.name.day_file_name,
             parent_folder_id=context.year_folder_id,
@@ -158,9 +158,8 @@ class MonthSpreadsheetExistenceEnsurer:
         self,
         context: Context,
     ) -> Spreadsheet:
-        if not context.year_folder_id:
-            raise ValueError("year folder id not exist check YearFolderEnsurer")
-
+        
+        logger.info("ensure if month spreadsheet exist")
         spreadsheet_id: str | None = self.drive_file_manager.get_spreadsheet_id_by_name(
             spreadsheet_name=context.name.monthly_report_file_name,
             parent_folder_id=context.year_folder_id,
@@ -219,6 +218,7 @@ class DayProductExistenceEnsurer:
         self.context: Context = context
 
     def ensure_day_product(self,product:PaypalProductData) -> None:
+        logger.info("ensure day worksheet")
         product_exist: int | None = self.day_worksheet_reader.product_exist(
             product_variant_id=product.product_variant_uuid
         )
@@ -242,6 +242,7 @@ class MonthProductExistenceEnsurer:
         self.context: Context = context
 
     def ensure_month_product(self,product:PaypalProductData) -> int | None:
+        logger.info("ensure month worksheet")
         product_exist: int | None = self.month_worksheet_reader.product_exist(
             product_variant_uuid=product.product_variant_uuid
         )
@@ -260,7 +261,8 @@ class DayWorksheetValueUpdater:
         day_worksheet_writer: DayWorksheetProductWriter,
         day_worksheet_reader: DayWorksheetProductReader,
     ) -> None:
-        logger.info(msg=f"product by name '{context.product.name}' was found ")
+        
+        logger.info(msg=f"update day worksheet for product {context.product.name}'")
 
         if context.product.after - context.product.before > 0:
             logger.info(msg="update stock in in worksheets")
@@ -298,8 +300,7 @@ class MonthWorksheetValueUpdater:
         month_worksheet_writer: MonthWorksheetProductWriter,
         month_worksheet_reader: MonthWorksheetProductReader,
     ) -> None:
-        logger.info(msg=f"product by name '{context.product.name}' was found ")
-
+        logger.info(msg=f"update month worksheet for product {context.product.name}'")
         if context.product.after - context.product.before > 0:
             logger.info(msg="update stock in in worksheets")
 
@@ -362,32 +363,25 @@ class DriveFileStructureEnsurer:
         )
 
     def ensure_drive_file_structure(self, context: Context) -> None:
-
-        # step 1 ensure year folder:
+        logger.info("ensure drive file structure")
         self.year_folder_manager.ensure_year_folder(context=context)
 
-        # step 2.1 ensure month spreadsheet
         month_spreadsheet: Spreadsheet = (
             self.monthly_spreadsheet_existence_ensurer.ensure_month_spreadsheet(
                 context=context
             )
         )
-
-        # step 2.2 ensure day spreadsheet
         day_spreadsheet: Spreadsheet = (
             self.day_spreadsheet_existence_ensurer.ensure_day_spreadsheet(
                 context=context,
             )
         )
-
-        # step 3.1 ensure day and month worksheets:
         day_worksheet: Worksheet = self.worksheet_existence_ensurer.ensure_worksheet(
             spreadsheet=day_spreadsheet,
             name=context.name.day_worksheet_name,
             template_spreadsheet_id=DAY_TEMPLATE_ID,
         )
 
-        # step 3.2 ensure day worksheet:
         month_worksheet: Worksheet = self.worksheet_existence_ensurer.ensure_worksheet(
             spreadsheet=month_spreadsheet,
             name=context.name.month_worksheet_name,

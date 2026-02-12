@@ -19,6 +19,7 @@ dependencies = [
     "rich>=14.1.0",
     "ruff>=0.14.5",
     "sqlmodel>=0.0.27",
+    "types-pytz>=2025.2.0.20251108",
     "uvicorn>=0.38.0",
 ]
 

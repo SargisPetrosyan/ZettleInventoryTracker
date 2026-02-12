@@ -4,7 +4,13 @@ import logging
 from fastapi import Request
 from gspread.worksheet import JSONResponse
 import pytz
-from app.constants import ART_CRAFT_FOLDER_ID, CAFFE_FOLDER_ID, DALASHOP_FOLDER_ID, MONTH_PRODUCT_STOCK_IN_COL_OFFSET, SHOP_SUBSCRIPTION_EVENTS, WEBHOOK_ENDPOINT_NAME
+from app.constants import (
+    ART_CRAFT_FOLDER_ID,
+    CAFFE_FOLDER_ID,
+    DALASHOP_FOLDER_ID,
+    MONTH_PRODUCT_STOCK_IN_COL_OFFSET,
+    SHOP_SUBSCRIPTION_EVENTS,
+    WEBHOOK_ENDPOINT_NAME)
 from app.google_drive.client import GoogleDriveClient, SpreadSheetClient
 from app.google_drive.drive_manager import GoogleDriveFileManager
 from app.google_drive.sheet_manager import SpreadSheetFileManager
@@ -16,13 +22,14 @@ from app.constants import (
     CAFE_NAME,
 )
 from app.models.google_drive import RowEditResponse
-from app.models.product import Category, Price
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logger: logging.Logger = logging.getLogger(name=__name__)
 
 class EnvVariablesGetter:
 
@@ -31,8 +38,9 @@ class EnvVariablesGetter:
         variable: str | None = os.getenv(key=variable_name)
 
         if not variable:
+            logger.critical(f"env variable by name '{variable_name}' cant be NONE ")
             raise TypeError(f"env variable by name '{variable_name}' cant be NONE ")
-        
+    
         return variable
 
 

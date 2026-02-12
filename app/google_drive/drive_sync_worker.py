@@ -1,18 +1,22 @@
 from datetime import datetime
+import logging
 import time
 
 from sqlalchemy import Engine
-from app.constants import ART_AND_CRAFT_NAME, CAFE_NAME, DALA_SHOP_NAME, HOUR_INTERVAL
+from app.constants import  DALA_SHOP_NAME
 from app.core.config import Database
 from app.db.schemes import InventoryUpdateRepository
 from app.google_drive.client import GoogleDriveClient, SpreadSheetClient
 from app.google_drive.context import Context
-from app.google_drive.drive_data_updayer import DriveSpreadsheetUpdater
+from app.google_drive.drive_data_updater import DriveSpreadsheetUpdater
 from app.google_drive.drive_manager import GoogleDriveFileManager
 from app.google_drive.services import DriveFileStructureEnsurer
 from app.google_drive.sheet_manager import SpreadSheetFileManager
-from app.models.product import PaypalProductData, ProductData
+from app.models.product import PaypalProductData
 from app.zettle.services import InventoryManualDataCollector
+
+
+logger: logging.Logger = logging.getLogger(name=__name__)
 
 class HourlyWorkflowRunner:
     def __init__(self,database:Database) -> None:
@@ -29,10 +33,12 @@ class HourlyWorkflowRunner:
 
         start_date: datetime = datetime.strptime("2026-01-13 12:36:22","%Y-%m-%d %H:%M:%S")
         end_date: datetime = datetime.strptime("2026-01-13 16:00:00","%Y-%m-%d %H:%M:%S")
+        logger.info(f"start checking manual changes start_date:{start_date}, end date 'end_date'")
 
         repo_updater: InventoryUpdateRepository = InventoryUpdateRepository(engine=self.engine)
         
         for name in self.shops:
+            logger.info(f"check manual changes for Dalashop'")
             manual_collector = InventoryManualDataCollector(
                 start_date= start_date, 
                 end_date= end_date, 
@@ -43,10 +49,11 @@ class HourlyWorkflowRunner:
             list_of_manual_products: list[PaypalProductData] | None = manual_collector.get_manual_changed_products()
 
             if not list_of_manual_products:
+                logger.info(f"there is no manual changes for date interval start:{start_date}, end:{end_date}")
                 continue
 
             for product in list_of_manual_products:
-                time.sleep(8) #google drive limitations
+                time.sleep(8) #delay requests for google drive limitations
                 context =Context(product=product)
                 # step 2 check if google drive hade proper file structure
                 drive_file_ensurer = DriveFileStructureEnsurer(
