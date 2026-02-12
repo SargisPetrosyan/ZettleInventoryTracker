@@ -1,14 +1,14 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import time
 
 from sqlalchemy import Engine
-from app.constants import  DALA_SHOP_NAME
+from app.constants import  DALA_SHOP_NAME, HOUR_INTERVAL
 from app.core.config import Database
 from app.db.schemes import InventoryUpdateRepository
 from app.google_drive.client import GoogleDriveClient, SpreadSheetClient
 from app.google_drive.context import Context
-from app.google_drive.drive_data_updater import DriveSpreadsheetUpdater
+from app.google_drive.drive_remote_updater import DriveSpreadsheetUpdater
 from app.google_drive.drive_manager import GoogleDriveFileManager
 from app.google_drive.services import DriveFileStructureEnsurer
 from app.google_drive.sheet_manager import SpreadSheetFileManager
@@ -28,11 +28,11 @@ class HourlyWorkflowRunner:
         self.spreadsheet_manager = SpreadSheetFileManager(client=self.spreadsheet_file_client)
 
     def run(self):
-        # start_date: datetime = datetime.now()
-        # end_date: datetime = start_date - timedelta(hours=HOUR_INTERVAL)
+        start_date: datetime = datetime.now()
+        end_date: datetime = start_date - timedelta(hours=HOUR_INTERVAL)
 
-        start_date: datetime = datetime.strptime("2026-01-13 12:36:22","%Y-%m-%d %H:%M:%S")
-        end_date: datetime = datetime.strptime("2026-01-13 16:00:00","%Y-%m-%d %H:%M:%S")
+        # start_date: datetime = datetime.strptime("2026-01-13 12:36:22","%Y-%m-%d %H:%M:%S") #temporary
+        # end_date: datetime = datetime.strptime("2026-01-13 16:00:00","%Y-%m-%d %H:%M:%S")
         logger.info(f"start checking manual changes start_date:{start_date}, end date 'end_date'")
 
         repo_updater: InventoryUpdateRepository = InventoryUpdateRepository(engine=self.engine)

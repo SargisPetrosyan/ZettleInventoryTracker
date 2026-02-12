@@ -1,8 +1,6 @@
 from typing import List
 from fastapi.responses import JSONResponse
 from gspread import Cell, ValueRange, Worksheet
-import rich
-from sqlalchemy import values
 
 from app.constants import (
     DAY_PRODUCT_AND_VARIANT_ID_COL,
@@ -12,8 +10,6 @@ from app.constants import (
     MONTH_PRODUCT_STOCK_OUT_ROW_OFFSET,
     MONTH_WORKSHEET_FIRST_CELL,
     MONTH_PRODUCT_DATA_CELL_RANGE,
-    DAY_PRODUCT_NAME_COL,
-    MONTH_PRODUCT_NAME_COL,
 )
 from app.google_drive.context import Context
 import logging

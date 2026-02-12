@@ -48,8 +48,8 @@ logs/*
 # Credentials & Sensitive Data (IMPORTANT - Never commit!)
 credentials.json
 token.json
-app/creds/credentials.json
-app/creds/token.json
+app/creds/google/credentials.json
+app/creds/google/token.json
 app/creds/*
 data/*
 core/zettle/zettle_creds

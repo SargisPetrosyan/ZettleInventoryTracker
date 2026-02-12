@@ -60,6 +60,11 @@ CAFE_NAME = "cafe"
 
 HOUR_INTERVAL:int = 1
 
+DRIVE_SCOPES: list[str] = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
+]
+
 
 
 

@@ -97,7 +97,7 @@ class SpreadSheetFileManager:
         )
         logger.info(msg=f"file 'file_name: {file_name}' was not found")
         logger.info(msg=f"creating new file 'file_name: {file_name}'")
-        spreadsheet_id = spreadsheet_copy.id
+        spreadsheet_id: str = spreadsheet_copy.id
 
         spreadsheet: Spreadsheet = self.get_spreadsheet(spreadsheet_id=spreadsheet_id)
 
