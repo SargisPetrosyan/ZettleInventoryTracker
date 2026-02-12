@@ -142,9 +142,14 @@ class ManualProductData:
                             if validated_product_data.category is not None
                             else "None"
                         ),
-                        price=(
+                        selling_price=(
                             variant.price.amount // 100
                             if variant.price is not None
+                            else "None"
+                        ),
+                        cost_price=(
+                            variant.costPrice.amount // 100
+                            if variant.costPrice is not None
                             else "None"
                         ),
                         after=value.updated_value,

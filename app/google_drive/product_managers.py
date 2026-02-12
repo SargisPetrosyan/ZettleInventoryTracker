@@ -7,7 +7,7 @@ from app.constants import (
     DAY_PRODUCT_STOCK_IN_COL,
     DAY_PRODUCT_STOCK_OUT_COL,
     MONTH_PRODUCT_AND_VARIANT_ID_COL,
-    MONTH_PRODUCT_STOCK_OUT_ROW_OFFSET,
+    MONTH_PRODUCT_STOCK_OUT_NAME_ROW_OFFSET,
     MONTH_WORKSHEET_FIRST_CELL,
     MONTH_PRODUCT_DATA_CELL_RANGE,
 )
@@ -71,7 +71,8 @@ class DayWorksheetProductWriter:
             context.product.name,
             context.product.category_name,
             context.product.variant_name,
-            context.product.price,
+            context.product.cost_price,
+            context.product.selling_price,
         ]
         response:JSONResponse = self.worksheet.append_row(values=new_row) #type:ignore
         response_validated: RowEditResponse = RowEditResponse.model_validate(response)
@@ -152,7 +153,7 @@ class MonthWorksheetProductReader:
 
         if not product:
             raise TypeError("Month product value not exist ")
-        return product.row + MONTH_PRODUCT_STOCK_OUT_ROW_OFFSET #stock out row in next ro check_spreadsheet example
+        return product.row + MONTH_PRODUCT_STOCK_OUT_NAME_ROW_OFFSET #stock out row in next ro check_spreadsheet example
 
 
 
@@ -171,7 +172,8 @@ class MonthWorksheetProductWriter:
                     context.product.name,
                     context.product.category_name,
                     context.product.variant_name,
-                    context.product.price,
+                    context.product.cost_price,
+                    context.product.selling_price,
                 ],
                 table_range=MONTH_PRODUCT_DATA_CELL_RANGE,
                 )
@@ -181,7 +183,8 @@ class MonthWorksheetProductWriter:
                     context.product.name,
                     context.product.category_name,
                     context.product.variant_name,
-                    context.product.price,
+                    context.product.cost_price,
+                    context.product.selling_price,
                 ]
             )
 

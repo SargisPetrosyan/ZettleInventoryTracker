@@ -97,9 +97,7 @@ class YearFolderExistenceEnsurer:
                 title=WORKSHEET_SAMPLE_NAME
             )
             worksheet.update_title(title=context.name.day)
-        else:
-            logger.info(msg=f"year folder exist")
-            context.year_folder_id = year_folder_id
+        context.year_folder_id = year_folder_id
 
 
 class DaySpreadsheetExistenceEnsurer:

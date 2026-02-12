@@ -13,7 +13,9 @@ class Price(BaseModel,str_strip_whitespace=True):
 class Variants(BaseModel,str_strip_whitespace=True):
     uuid: UUID
     name: str | None
-    price: Price | None 
+    price: Price | None
+    costPrice: Price | None
+
 
 class Category(BaseModel,str_strip_whitespace=True):
     uuid:UUID
@@ -56,7 +58,8 @@ class PaypalProductData():
     name: str 
     variant_name: str 
     category_name: str 
-    price: str | int
+    cost_price: str | int 
+    selling_price: str | int
 
 class ListOfProductData(TypedDict):
     list_of_products: dict[tuple[UUID,UUID], list[PaypalProductData]]

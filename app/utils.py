@@ -8,7 +8,7 @@ from app.constants import (
     ART_CRAFT_FOLDER_ID,
     CAFFE_FOLDER_ID,
     DALASHOP_FOLDER_ID,
-    MONTH_PRODUCT_STOCK_IN_COL_OFFSET,
+    MONTH_PRODUCT_STOCK_IN_NAME_COL_OFFSET,
     SHOP_SUBSCRIPTION_EVENTS,
     WEBHOOK_ENDPOINT_NAME)
 from app.google_drive.client import GoogleDriveClient, SpreadSheetClient
@@ -56,7 +56,7 @@ class FileName:
         self.day_file_name: str = f"{self.year}-{self.month}-{self.month_file_name}"
         self.month_worksheet_name: str = self.day_file_name
         self.monthly_report_file_name: str = f"{self.year}-monthly report"
-        self.month_stock_in_and_out_col_index: int = int(self.day) + MONTH_PRODUCT_STOCK_IN_COL_OFFSET
+        self.month_stock_in_and_out_col_index: int = int(self.day) + MONTH_PRODUCT_STOCK_IN_NAME_COL_OFFSET
         self.month_stock_out_row_index:int = int(self.day) + 1
         logger.info(f"file name was created 'file_name: {self.day_file_name}'")
 
