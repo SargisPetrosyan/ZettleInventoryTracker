@@ -1,3 +1,4 @@
+from typing import Literal
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -56,9 +57,9 @@ MONTH_PRODUCT_DATA_CELL_RANGE: str = "A2:D2"
 SHOP_SUBSCRIPTION_EVENTS:list[str] = ["InventoryBalanceChanged"]
 
 #Shop names:
-DALA_SHOP_NAME = "dala"
-ART_AND_CRAFT_NAME = "art"
-CAFE_NAME = "cafe"
+DALA_SHOP_NAME:str= "dala"
+ART_AND_CRAFT_NAME:str = "art"
+CAFE_NAME:str = "cafe"
 
 HOUR_INTERVAL:int = 1
 

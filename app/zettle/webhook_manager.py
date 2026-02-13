@@ -1,10 +1,15 @@
+import time
 from typing import Any
 from dotenv import load_dotenv
 from abc import abstractmethod,ABC
 import logging
 
+from flask import request
 import httpx
+import rich
 
+from app.constants import ART_AND_CRAFT_NAME, CAFE_NAME, DALA_SHOP_NAME
+from app.models.webhook import WebhookCheck
 from app.utils import CredentialContext
 from app.zettle.auth import ZettleCredentialsManager
 load_dotenv()
@@ -18,7 +23,7 @@ class WebhookManager(ABC):
         raise NotImplementedError
     
     @abstractmethod
-    def check_subscription(self)-> None:
+    def check_subscription(self)-> None | WebhookCheck:
         raise NotImplementedError
     
     @abstractmethod
@@ -54,7 +59,7 @@ class WebhookSubscriptionClient(WebhookManager):
             })
         logger.info(msg=f"created subscription for shop {self.shop_name} response : {response.json()}")
 
-    def check_subscription(self)   -> None:
+    def check_subscription(self) -> None | WebhookCheck:
         access_token: str = self.creds_manager.get_access_token()
         result: httpx.Response = httpx.get(
         url='https://pusher.izettle.com/organizations/self/subscriptions',
@@ -62,13 +67,17 @@ class WebhookSubscriptionClient(WebhookManager):
             'Authorization': f'Bearer {access_token}',
             'Content-Type': 'application/json'
         })
+        converted: list[dict[str,str]] | None = result.json()
         logger.info(msg=f"subscriptions for {self.shop_name} count:{len(result.json())} data: {result.json()}")
-
+        if not converted:
+            return None
+        validated_model:WebhookCheck = WebhookCheck.model_validate(obj=converted[0])
+        return validated_model
     
     def delete_subscription(self) -> None:
         access_token: str = self.creds_manager.get_access_token()
         logger.info(msg=f"deleting subscription")
-        response = httpx.delete(
+        httpx.delete(
         url=f'https://pusher.izettle.com/organizations/self/subscriptions/{self.credential_context.subscription_uuid}',
         headers={
             'Authorization': f'Bearer {access_token}',
@@ -94,3 +103,33 @@ class WebhookSubscriptionClient(WebhookManager):
         json=data)
 
         logger.info(msg=f"updated Dala shop subscription{response.json()}")
+
+
+class WebhookEnsurer:
+    def __init__(self,client:WebhookSubscriptionClient) -> None:
+        self.webhook_client: WebhookSubscriptionClient = client
+
+    def ensure_subscription(self) -> None:
+        for shop in (DALA_SHOP_NAME,CAFE_NAME,ART_AND_CRAFT_NAME):
+            shop_webhook_client = WebhookSubscriptionClient(shop_name=shop)
+            subscription: None | WebhookCheck = shop_webhook_client.check_subscription()
+            if not subscription or subscription.status is not 'ACTIVE':
+                if not subscription:
+                    self.webhook_client.create_subscription()
+                else:
+                    self.webhook_client.delete_subscription()
+                    self.webhook_client.create_subscription()
+
+class WebhookCleaner:
+    def __init__(self,client:WebhookSubscriptionClient) -> None:
+        self.webhook_client: WebhookSubscriptionClient = client
+
+    def delete_webhooks(self) -> None:
+        for shop in (DALA_SHOP_NAME,CAFE_NAME,ART_AND_CRAFT_NAME):
+            shop_webhook_client = WebhookSubscriptionClient(shop_name=shop)
+            subscription: None | WebhookCheck = shop_webhook_client.check_subscription()
+            if not subscription or subscription.status is not 'ACTIVE':
+                if not subscription:
+                    continue
+                else:
+                    self.webhook_client.delete_subscription()

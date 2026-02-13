@@ -3,7 +3,7 @@ import logging
 import time
 
 from sqlalchemy import Engine
-from app.constants import  DALA_SHOP_NAME, HOUR_INTERVAL
+from app.constants import  ART_AND_CRAFT_NAME, CAFE_NAME, DALA_SHOP_NAME
 from app.core.config import Database
 from app.db.schemes import InventoryUpdateRepository
 from app.google_drive.client import GoogleDriveClient, SpreadSheetClient
@@ -21,7 +21,7 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 class HourlyWorkflowRunner:
     def __init__(self,database:Database) -> None:
         self.engine: Engine = database.engine
-        self.shops = (DALA_SHOP_NAME,)
+        self.shops: tuple[str, str, str]= (DALA_SHOP_NAME,ART_AND_CRAFT_NAME,CAFE_NAME)
         self.google_drive_client = GoogleDriveClient()
         self.spreadsheet_file_client = SpreadSheetClient()
         self.google_drive_file_manager = GoogleDriveFileManager(client=self.google_drive_client)
