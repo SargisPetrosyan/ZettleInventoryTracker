@@ -60,7 +60,7 @@ DALA_SHOP_NAME = "dala"
 ART_AND_CRAFT_NAME = "art"
 CAFE_NAME = "cafe"
 
-HOUR_INTERVAL:int = 1
+HOUR_INTERVAL_MINUTE:int = 1
 
 DRIVE_SCOPES: list[str] = [
     "https://www.googleapis.com/auth/spreadsheets",

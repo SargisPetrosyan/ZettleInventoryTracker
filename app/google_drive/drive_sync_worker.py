@@ -3,7 +3,7 @@ import logging
 import time
 
 from sqlalchemy import Engine
-from app.constants import  DALA_SHOP_NAME, HOUR_INTERVAL
+from app.constants import  DALA_SHOP_NAME, HOUR_INTERVAL_MINUTE
 from app.core.config import Database
 from app.db.schemes import InventoryUpdateRepository
 from app.google_drive.client import GoogleDriveClient, SpreadSheetClient
@@ -28,17 +28,19 @@ class HourlyWorkflowRunner:
         self.spreadsheet_manager = SpreadSheetFileManager(client=self.spreadsheet_file_client)
 
     def run(self):
-        # start_date: datetime = datetime.now()
-        # end_date: datetime = start_date - timedelta(hours=HOUR_INTERVAL)
+        
+        start_date: datetime = datetime.now()
+        end_date: datetime = start_date - timedelta(minutes=HOUR_INTERVAL_MINUTE)
+        logger.info(msg=f"chack manual changes for interval start:'{start_date}', end:'{end_date}'")
 
-        start_date: datetime = datetime.strptime("2026-01-13 12:36:22","%Y-%m-%d %H:%M:%S") #temporary
-        end_date: datetime = datetime.strptime("2026-01-13 16:00:00","%Y-%m-%d %H:%M:%S")
-        logger.info(f"start checking manual changes start_date:{start_date}, end date 'end_date'")
+        # start_date: datetime = datetime.strptime("2026-01-13 12:36:22","%Y-%m-%d %H:%M:%S") #temporary
+        # end_date: datetime = datetime.strptime("2026-01-13 16:00:00","%Y-%m-%d %H:%M:%S")
+        # logger.info(f"start checking manual changes start_date:{start_date}, end date 'end_date'")
 
         repo_updater: InventoryUpdateRepository = InventoryUpdateRepository(engine=self.engine)
         
         for name in self.shops:
-            logger.info(f"check manual changes for Dalashop'")
+            logger.info(f"check manual changes for '{name}'")
             manual_collector = InventoryManualDataCollector(
                 start_date= start_date, 
                 end_date= end_date, 
