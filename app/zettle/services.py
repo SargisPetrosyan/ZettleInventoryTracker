@@ -132,10 +132,18 @@ class ManualProductData:
             validated_product_data:ProductData = ProductData.model_validate(obj=product_data)
             
             for variant in validated_product_data.variants:
-                if variant.uuid == key[1]:
+                if variant and variant.uuid == key[1]:
                     product:PaypalProductData = PaypalProductData(
-                        name=validated_product_data.name,
-                        variant_name=str(object=variant.name),
+                        name=(
+                            validated_product_data.name
+                            if validated_product_data.name is not None
+                            else "None"
+                        ),
+                        variant_name=(
+                            str(object=variant.name)
+                            if variant is not None
+                            else "None"
+                        ),
                         product_variant_uuid=f"{str(key[0])},{str(key[1])}",
                         category_name=(
                             validated_product_data.category.name
@@ -144,12 +152,12 @@ class ManualProductData:
                         ),
                         selling_price=(
                             variant.price.amount // 100
-                            if variant.price is not None
+                            if variant and variant.price is not None
                             else "None"
                         ),
                         cost_price=(
                             variant.costPrice.amount // 100
-                            if variant.costPrice is not None
+                            if variant and variant.costPrice is not None 
                             else "None"
                         ),
                         after=value.updated_value,

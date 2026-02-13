@@ -24,8 +24,8 @@ class Category(BaseModel,str_strip_whitespace=True):
 class ProductData(BaseModel, str_strip_whitespace=True):
     uuid: UUID
     categories: list[ None | str]
-    name: str
-    variants: list[Variants]
+    name: str | None
+    variants: list[Variants | None]
     category: Category | None
 
 
@@ -55,7 +55,7 @@ class PaypalProductData():
     before: int 
     after: int
     timestamp: datetime
-    name: str 
+    name: str
     variant_name: str 
     category_name: str 
     cost_price: str | int 
