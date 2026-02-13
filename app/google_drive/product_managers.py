@@ -96,7 +96,7 @@ class DayWorksheetProductWriter:
 
     def update_stock_out(self, old_stock_out: int, amount: int, row: int) -> None:
         old_value: int = old_stock_out
-        increment_values: int = abs(old_value) + amount
+        increment_values: int = old_value + amount
         logger.info(f"update day report stock_out by value'{increment_values}'")
         self.worksheet.update_cell(
             row=row,
@@ -219,7 +219,7 @@ class MonthWorksheetProductWriter:
         self, old_stock_out: int, amount: int, row: int, col: int
     ) -> None:
         old_value: int = old_stock_out
-        increment_values: int = abs(old_value) + amount
+        increment_values: int = old_value + amount
         logger.info(
             msg=f"update day report stock_out by value'{increment_values}' row:'{row}', col:'{col}'"
         )
