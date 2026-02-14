@@ -1,5 +1,7 @@
-from fastapi import BackgroundTasks, FastAPI, Request
+from fastapi import FastAPI, Request
 import logging
+
+import uvicorn
 from app.constants import HOUR_INTERVAL_MINUTE
 from app.google_drive.drive_remote_updater import DriveSpreadsheetUpdater
 from app.google_drive.drive_sync_worker import HourlyWorkflowRunner
@@ -28,13 +30,13 @@ async def lifespan(app:FastAPI):
     scheduler = BackgroundScheduler()
     scheduler.add_job(func=spreadsheet_updater.run,trigger="interval",minutes = HOUR_INTERVAL_MINUTE)
     scheduler.start()
-    #ch
-    webhook_checker.ensure_subscription()
+    # webhook_checker.ensure_subscription()
     yield
     #delete webhooks before shut down
-    webhook_cleaner.delete_webhooks()
+    # webhook_cleaner.delete_webhooks()
 
 app = FastAPI(lifespan=lifespan)
+
 
 
 @app.post(path="/store_inventory_data_webhook")
@@ -48,3 +50,6 @@ async def store_inventory_data_webhook(request: Request) -> None | dict:
     validated_data: InventoryBalanceUpdateValidation = InventoryBalanceUpdateValidation.model_validate(obj=parsed_data)
     webhook_handler.process_subscription(inventory_update=validated_data, database=database)
 
+
+if __name__ =="__main__":
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=False, log_level="info")
